@@ -310,7 +310,7 @@ Schema: [`schemas/slide.schema.json`](../schemas/slide.schema.json). Types:
 
 Two modes, and neither is a fallback for the other:
 
-- **`composed`** — declares a `block` (one of thirteen), `items`, and optional
+- **`composed`** — declares a `block` (one of fourteen), `items`, and optional
   `connectors`. The source carries **no coordinates at all**; a `x`, `y`,
   `col`, `row`, `via`, `left`, `top` or `position` key anywhere in the file is
   a `slide/coordinate-in-source` error. Geometry follows from the block and the
@@ -323,11 +323,15 @@ Exceeding it is treated as an editorial problem, not a layout one:
 
 | block | cap | | block | cap | | block | cap |
 |---|---|---|---|---|---|---|---|
-| `title` | 1 | | `sequence` | 8 | | `badge-list` | 12 |
-| `bullets` | 6 | | `ring` | 4 | | `metric` | 3 |
-| `flow-row` | 8 | | `compare` | 3 | | `code` | 1 |
-| `hub` | 8 | | `stack` | 6 | | `quote` | 1 |
-| `store` | 3 | | | | | | |
+| `title` | 1 | | `sequence` | 10 | | `badge-list` | 14 |
+| `bullets` | 8 | | `ring` | 4 | | `metric` | 4 |
+| `flow-row` | 10 | | `compare` | 4 | | `code` | 1 |
+| `hub` | 10 | | `stack` | 8 | | `quote` | 1 |
+| `store` | 4 | | `layers` | 18 | | | |
+
+`layers` is a lane diagram whose geometry is `(lane, order)`; its cap is a
+whole-slide total across every lane, because that is what the glance budget
+actually spends.
 
 ### `out/<id>/timeline.json` — the recorded clock
 
@@ -1386,16 +1390,26 @@ The conformance fixtures are deliberately **not** Django and **not** Next.js.
 What they reproduce is the *behaviour* that breaks a framework assumption. An
 engine that survives both survives the frameworks that have those shapes.
 
-CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) runs a **three-OS
-matrix**. A `check` job on Linux, macOS and Windows does `type-check` →
-`unit` + `neutrality` + `portability` → `geometry` + `slides-hardening` →
-`readme` → `doctor` on a bare machine (an absent tool must report as unavailable,
-never as a false pass). An `integration` job then provisions ffmpeg and chromium
-per platform and runs `conformance` → `timing` → `determinism` → the slide
-runtime suites → `hardening` + `security`, again on all three. A third job proves
-the **packaging is byte-deterministic**: stage from git-tracked files only, zip
-twice, `cmp`. Sorted entries, fixed DOS timestamps, and a pinned Node major
-(zlib output varies between majors).
+**There is no CI.** The suites above are the whole verification story and they
+are run by hand:
+
+```bash
+npm run type-check
+node test/run.mjs                 # everything
+node test/run.mjs unit            # or one suite by substring
+```
+
+Before a release, the order that catches the most for the least time is
+`type-check` → `unit` + `neutrality` + `portability` → `geometry` +
+`slides-hardening` → `readme`, then the suites that need ffmpeg and a browser:
+`conformance` → `timing` → `determinism` → the slide runtime suites →
+`hardening` + `security`. `node bin/rushes.mjs doctor` on a bare machine is worth
+one run of its own: an absent tool must report as unavailable, never as a false
+pass.
+
+Packaging is byte-deterministic and `test/determinism.test.mjs` proves it: stage
+from git-tracked files only, zip twice, `cmp`. Sorted entries, fixed DOS
+timestamps, and a pinned Node major (zlib output varies between majors).
 
 `benchmark/run.mjs` scores a "first-pass usable" benchmark by running gates 1
 and 2 and reporting gate 3 as **PENDING** — it will never mark a case passed on

@@ -6,7 +6,6 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![node](https://img.shields.io/badge/node-%E2%89%A522.6-brightgreen)](package.json)
-[![ci](https://img.shields.io/badge/ci-conformance%20suite-informational)](.github/workflows/ci.yml)
 
 ```bash
 npx skills add samugit83/rushes -g --all -y
@@ -195,7 +194,7 @@ about four minutes, for a developer evaluating us.
 | **1.** an intro slide | a `composed` slide using the `flow-row` block. The palette and typeface are extracted from your running app, so it does not arrive looking like a stock template. Every slide is measured after rendering: text below the size floor, contrast under 4.5:1, anything outside the frame, and text too small once projected into a 640px player all fail |
 | **2.** navigate, interact, create | live scenes driven by visible text and ARIA roles rather than CSS classes, so they survive a refactor. The create step gets an `expect` on the empty state — a video of a form that never submitted cannot be delivered |
 | **3.** a diagram from the real code | the agent reads the folders you named and drafts a slide with a **topology**, not a picture. Connectors are drawn after layout from the measured boxes and then checked: a route through a box it does not connect is a hard failure at every profile |
-| **3.** "lighting up each box as you name it" | slide **beats**, anchored to a *word* in the narration. The voice provider returns character-level timings, so `focus`, `reveal` and `travel` fire on the word — and a reworded sentence, or a different voice, re-syncs every beat with no edit. A beat that never fired is a failed check, not something you notice on the fourth viewing |
+| **3.** "lighting up each box as you name it" | slide **beats**, anchored to a *word* in the narration. The voice provider returns character-level timings, so `focus`, `reveal` and `travel` fire on the word — and a reworded sentence, or a different voice, re-syncs every beat with no edit. A beat that never fired fails the build at the publishable profile, rather than being something you notice on the fourth viewing |
 | **4.** filter, sort, export | more live scenes. If the narration says a number, bind it with an `assert` and it is checked against live data before recording — a figure that was true when you wrote it and false when it filmed is the failure that cannot be fixed after upload |
 | **5.** read an external page | an off-origin visit. The host must be listed in `external.allow`, it is filmed from a **fresh browser context that never held your credentials**, only a picture crosses back, and the source URL stays on screen. Mark the scene `volatile`: someone else's page rotates its content, and the rehearsal must not demand it be identical twice |
 | **6.** "explore it yourself" | `rushes discover` walks the section and drafts scenes whose `expect`s are pre-filled from elements it actually saw. It is a proposal, never a recording — you approve the outline at Gate 2 first |
