@@ -9,7 +9,7 @@
 [![ci](https://img.shields.io/badge/ci-conformance%20suite-informational)](.github/workflows/ci.yml)
 
 ```bash
-npx skills add samugit83/rushes --all -y
+npx skills add samugit83/rushes -g --all -y
 ```
 
 </div>
@@ -37,7 +37,7 @@ looking at four things.
 ### Step 1. Install it, once, from anywhere
 
 ```bash
-npx skills add samugit83/rushes --all -y
+npx skills add samugit83/rushes -g --all -y
 ```
 
 > **Prefer to work from a clone?** Development, or any change you want to make to
@@ -49,14 +49,34 @@ npx skills add samugit83/rushes --all -y
 > ```
 > Everything from Step 2 onward is identical either way.
 
-`--all` answers every prompt for you: install this skill, to every agent it
-knows about, globally. So **it does not matter which directory you are in**, and
-it makes rushes available in every project on your machine. You never run this
-again.
+`-g` makes it global and `--all` answers every prompt, so **it does not matter
+which directory you are in** and rushes is available in every project on your
+machine. You never run this again. It lands in `~/.agents/skills/rushes`, with
+`~/.claude/skills/rushes` pointing at it.
 
-The command installs no binary, which is normal for a skill: your agent runs it
-from the skill's own directory. The first run installs the skill's dependencies
-by itself, so there is nothing to do here beyond the line above.
+Two lines near the end will say `Eve does not support global skill installation`
+and the same for `PromptScript`. That is expected: those two agents have no
+global location, and every other agent installed fine.
+
+**Then give yourself the command the rest of this README uses:**
+
+```bash
+alias rushes='node ~/.agents/skills/rushes/bin/rushes.mjs'
+```
+
+Put it in your `~/.bashrc` or `~/.zshrc`. Your coding agent does not need this,
+it runs the entry point by path, but every `rushes ...` below is written for a
+human at a shell.
+
+> **Why there is no installed binary.** Rushes runs its TypeScript directly, with
+> no build step, because Node strips the types at load time. Node deliberately
+> refuses to do that for files under `node_modules/`, so `npm install -g` gives
+> you a `rushes` command that dies with
+> `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. A skill directory is not under
+> `node_modules`, which is why the alias works and an npm install does not.
+
+The first run installs the skill's own dependencies, once, into its own
+directory. Nothing else to do.
 
 ### Step 2. Let it set itself up
 
@@ -612,7 +632,7 @@ Full model: [`SECURITY.md`](SECURITY.md).
 <!-- generated:versions -->
 | | |
 |---|---|
-| version | `1.0.1` |
+| version | `1.0.2` |
 | node | `>=22.6.0` |
 | license | `MIT` |
 | dependencies | `ajv@8.20.0`, `ajv-formats@3.0.1`, `playwright@1.62.1` |

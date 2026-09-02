@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.2
+
+The 1.0.1 README was wrong in two ways, both found by installing from a clean
+machine and reading what actually happened rather than what was intended.
+
+- **The documented install was not global.** `--all` is shorthand for
+  `--skill '*' --agent '*' -y` and says nothing about scope, so the command
+  installed project-level and wrote `.agents/`, `agent/`, `skills-lock.json` and
+  a symlink into whatever repository you happened to be standing in. It is now
+  `-g --all -y`.
+- **The README kept promising a `rushes` binary.** There is none on this path,
+  and there cannot be one via npm: Node refuses to strip types under
+  `node_modules/`, so `npm install -g` produces a command that dies with
+  `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. Step 1 now defines a one-line
+  alias, which makes every later `rushes ...` in the README literally true, and
+  says why an npm install cannot work.
+
 ## 1.0.1
 
 Installing the skill did not produce a skill that could run. Found by installing
