@@ -1,6 +1,6 @@
 {
   "name": "rushes",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Point your coding agent at your web app. Get a narrated, captioned, verified demo video.",
   "license": "MIT",

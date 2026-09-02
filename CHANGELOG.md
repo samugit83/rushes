@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.3
+
+- **Hub diagrams no longer cramp their vertical satellites.** On a wide 16:9
+  frame the hub gave its left/right satellites far more reach than its top/bottom
+  ones, so a five-node hub (one centre, four around it) squeezed the north and
+  south boxes against the centre while the east/west boxes floated free. The
+  reach is rebalanced so all four sit clear of the centre with room for their
+  connectors.
+
 ## 1.0.2
 
 The 1.0.1 README was wrong in two ways, both found by installing from a clean

@@ -43,8 +43,13 @@
     if (!hub) return;
     var sats = Array.prototype.slice.call(hub.querySelectorAll('.satellite'));
     var rect = hub.getBoundingClientRect();
-    var rx = rect.width / 2 - 170;
-    var ry = rect.height / 2 - 110;
+    // Push satellites well clear of the centre. The vertical reach is the tight
+    // one on a wide frame, so it gets a smaller inset than the horizontal —
+    // otherwise a due-north or due-south satellite hugs the centre box while the
+    // east/west ones float free, which is the cramped four-node cross this
+    // avoids.
+    var rx = rect.width / 2 - 150;
+    var ry = rect.height / 2 - 60;
     sats.forEach(function (el, i) {
       var a = (-Math.PI / 2) + (i * 2 * Math.PI) / sats.length;
       el.style.left = (50 + (Math.cos(a) * rx * 100) / rect.width) + '%';
