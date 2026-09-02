@@ -9,7 +9,7 @@
 [![ci](https://img.shields.io/badge/ci-conformance%20suite-informational)](.github/workflows/ci.yml)
 
 ```bash
-npx skills add samugit83/rushes -g
+npx skills add samugit83/rushes --all -y
 ```
 
 </div>
@@ -37,7 +37,7 @@ looking at four things.
 ### Step 1. Install it, once, from anywhere
 
 ```bash
-npx skills add samugit83/rushes -g
+npx skills add samugit83/rushes --all -y
 ```
 
 > **Prefer to work from a clone?** Development, or any change you want to make to
@@ -49,10 +49,14 @@ npx skills add samugit83/rushes -g
 > ```
 > Everything from Step 2 onward is identical either way.
 
-`-g` installs it globally, so **it does not matter which directory you are in**.
-It downloads the skill and puts it where Claude Code and Codex look for skills,
-which makes it available in every project on your machine. You never run this
+`--all` answers every prompt for you: install this skill, to every agent it
+knows about, globally. So **it does not matter which directory you are in**, and
+it makes rushes available in every project on your machine. You never run this
 again.
+
+The command installs no binary, which is normal for a skill: your agent runs it
+from the skill's own directory. The first run installs the skill's dependencies
+by itself, so there is nothing to do here beyond the line above.
 
 ### Step 2. Let it set itself up
 
@@ -608,7 +612,7 @@ Full model: [`SECURITY.md`](SECURITY.md).
 <!-- generated:versions -->
 | | |
 |---|---|
-| version | `1.0.0` |
+| version | `1.0.1` |
 | node | `>=22.6.0` |
 | license | `MIT` |
 | dependencies | `ajv@8.20.0`, `ajv-formats@3.0.1`, `playwright@1.62.1` |

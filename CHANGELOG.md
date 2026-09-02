@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.1
+
+Installing the skill did not produce a skill that could run. Found by installing
+it from a clean machine and following the README, which is the only way this
+class of defect ever shows up.
+
+- **The skill installs its own dependencies on first run.** `npx skills add`
+  copies files and runs no package manager, so the first command died on
+  `Cannot find package 'ajv'`. The entry point now installs them once, into its
+  own directory, unprivileged, and prints the one manual command if it cannot.
+- **`SKILL.md` no longer assumes a `rushes` binary on the PATH.** A skill
+  installed this way has no command; the agent runs `node bin/rushes.mjs` from
+  the skill's own directory, and the setup section says so.
+- **The documented install is non-interactive.** `npx skills add
+  samugit83/rushes --all -y` answers the agent-selection prompts instead of
+  stopping to ask.
+
 ## 1.0.0
 
 The first release, and a substantial rewrite of a private tool into a

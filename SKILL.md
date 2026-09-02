@@ -220,6 +220,19 @@ correction_rounds:  1
 
 ## 9. Setup and fallback
 
+**How to invoke it.** If `rushes` is on the PATH, use it. It usually is not:
+`npx skills add` copies the skill's files and installs no command, so run the
+entry point from the skill's own directory instead, and read every `rushes <cmd>`
+below as that.
+
+```bash
+node bin/rushes.mjs doctor        # from the directory this SKILL.md is in
+```
+
+The first invocation installs the skill's own dependencies, once, into that same
+directory. It needs no privileges and asks for nothing. If it cannot, it prints
+the single command to run by hand and stops.
+
 Run `rushes doctor`. It prints exactly what is missing and the one command that
 installs it.
 

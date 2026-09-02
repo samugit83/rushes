@@ -7,14 +7,37 @@
 
 import { pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 
 const here = dirname(decodeURIComponent(new URL(import.meta.url).pathname));
-const lib = (p) => pathToFileURL(join(here, '..', 'lib', p)).href;
+const root = join(here, '..');
+const lib = (p) => pathToFileURL(join(root, 'lib', p)).href;
 
 const major = Number(process.versions.node.split('.')[0]);
 if (major < 22) {
   process.stderr.write(`rushes needs Node 22.6 or newer (found ${process.version}).\n`);
   process.exit(1);
+}
+
+// First run after `npx skills add`, which copies files and never installs
+// anything. Without this the very first command dies on `Cannot find package
+// 'ajv'`, which is a confusing way to learn that a skill was installed but
+// cannot run. Install once, into the skill's OWN directory, unprivileged.
+//
+// This is the same stance `setup` already takes for the browser: fetch what
+// lands in a directory we own, and never run a privileged command on the
+// operator's behalf.
+if (!existsSync(join(root, 'node_modules', 'ajv'))) {
+  process.stderr.write('  first run: installing the skill\'s own dependencies, once\n');
+  const npm = spawnSync('npm', ['install', '--omit=dev', '--no-audit', '--no-fund', '--loglevel=error'],
+    { cwd: root, stdio: 'inherit' });
+  if (npm.status !== 0 || !existsSync(join(root, 'node_modules', 'ajv'))) {
+    process.stderr.write(
+      `\ncould not install the skill's dependencies automatically.\nRun this once, by hand:\n\n  cd ${root} && npm install --omit=dev\n\n`);
+    process.exit(1);
+  }
+  process.stderr.write('  done\n\n');
 }
 
 const { parseArgs } = await import(lib('cli/args.ts'));
