@@ -106,9 +106,9 @@ body {
      a soft coloured glow keyed to the box's own tone. This is most of the
      "premium" look, and it costs nothing at render time. */
   background:
-    linear-gradient(155deg, color-mix(in srgb, var(--tone, var(--tone-neutral)) 16%, var(--surface-2)), var(--surface-2) 72%);
-  border: 1px solid color-mix(in srgb, var(--tone, var(--border)) 42%, var(--border));
-  border-left: 5px solid var(--tone, var(--tone-neutral));
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tone, var(--tone-neutral)) 30%, var(--surface-2)), var(--surface-2) 68%);
+  border: 1.5px solid color-mix(in srgb, var(--tone, var(--border)) 70%, transparent);
+  border-left: 6px solid var(--tone, var(--tone-neutral));
   border-radius: var(--radius);
   padding: var(--space-3) var(--space-3);
   display: flex;
@@ -116,9 +116,10 @@ body {
   gap: var(--space-1);
   min-width: 0;
   box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 6%, transparent) inset,
-    0 10px 30px color-mix(in srgb, #000 45%, transparent),
-    0 0 22px color-mix(in srgb, var(--tone, var(--tone-neutral)) 22%, transparent);
+    0 1px 0 color-mix(in srgb, #fff 10%, transparent) inset,
+    0 14px 40px color-mix(in srgb, #000 55%, transparent),
+    0 0 2px color-mix(in srgb, var(--tone, var(--tone-neutral)) 90%, transparent),
+    0 0 40px color-mix(in srgb, var(--tone, var(--tone-neutral)) 45%, transparent);
   transition: transform var(--motion-state) var(--ease), box-shadow var(--motion-state) var(--ease);
 }
 .box .label { font: 700 var(--type-label) / 1.15 var(--font); }
@@ -277,7 +278,7 @@ body {
   stroke: var(--accent);
   stroke-width: 3;
   color: var(--accent);
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 60%, transparent));
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 85%, transparent));
   /* A signal flows along every edge. The geometry checks read the path's own
      coordinates, not the visual dash, so the animation never affects them. */
   stroke-dasharray: 14 10;

@@ -133,12 +133,17 @@ async function renderOn(page: Page, opts: RenderOptions): Promise<RenderedSlide[
 }
 
 /** A contact sheet with relative paths, so it opens from anywhere. */
-export function contactSheet(rendered: RenderedSlide[], title: string): string {
-  const cards = rendered.filter((r) => r.png).map((r) => `
+export function contactSheet(rendered: RenderedSlide[], title: string, gifs: Record<string, string> = {}): string {
+  const cards = rendered.filter((r) => r.png).map((r) => {
+    // Prefer the gif when a slide animates, so the motion is what you review.
+    const src = gifs[r.id] ? `${r.id}.gif` : `${r.id}.png`;
+    const tag = gifs[r.id] ? ' · <span style="color:#f59e0b">▶ motion</span>' : '';
+    return `
     <figure>
-      <img src="${r.id}.png" alt="${r.id}"/>
-      <figcaption>${r.id}${r.measurement ? ` · ${r.measurement.words} words · ${r.measurement.mode}` : ''}</figcaption>
-    </figure>`).join('');
+      <img src="${src}" alt="${r.id}"/>
+      <figcaption>${r.id}${r.measurement ? ` · ${r.measurement.words} words · ${r.measurement.mode}` : ''}${tag}</figcaption>
+    </figure>`;
+  }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>
     body{background:#0b0a10;color:#e7e5ea;font:14px system-ui,sans-serif;margin:0;padding:28px;}
     h1{font-size:18px;font-weight:700;margin:0 0 20px;}
@@ -149,7 +154,7 @@ export function contactSheet(rendered: RenderedSlide[], title: string): string {
   </style></head><body><h1>${title}</h1><div class="grid">${cards}</div></body></html>`;
 }
 
-export function writeContactSheet(path: string, rendered: RenderedSlide[], title: string): string {
-  writeFileSync(path, contactSheet(rendered, title));
+export function writeContactSheet(path: string, rendered: RenderedSlide[], title: string, gifs: Record<string, string> = {}): string {
+  writeFileSync(path, contactSheet(rendered, title, gifs));
   return path;
 }

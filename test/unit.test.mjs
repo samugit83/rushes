@@ -311,3 +311,17 @@ await test('a json path reads through objects and arrays, and misses cleanly', (
   equal(readJsonPath(body, 'info.missing'), undefined);
   equal(readJsonPath(body, 'info.totalNodes.deeper'), undefined);
 });
+
+// --- gif preview: which slides earn a motion preview ---------------------
+await test('a slide animates (earns a gif) only when it has connectors or beats', async () => {
+  const { animates } = await import('../lib/slides/gif.ts');
+  // composed with connectors -> flows -> gif
+  assert(animates({ mode: 'composed', block: 'hub', connectors: [{ from: 'a', to: 'b' }] }, 0));
+  // any slide the storyboard fires beats on -> gif
+  assert(animates({ mode: 'authored', html: '<div/>' }, 3));
+  // a static composed slide (no connectors, no beats) -> no gif, a gif of a still is just a heavier still
+  assert(!animates({ mode: 'composed', block: 'metric', items: [{ value: '42' }] }, 0));
+  assert(!animates({ mode: 'composed', block: 'title', title: 'X' }, 0));
+  // an authored slide with no beats -> we can't know it animates, so no gif
+  assert(!animates({ mode: 'authored', html: '<div class="anim"/>' }, 0));
+});

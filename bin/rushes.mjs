@@ -250,7 +250,7 @@ try {
     case 'slides': {
       const { slides } = await import(lib('cli/slides.ts'));
       const sub = args.positional[0] ?? 'build';
-      code = await slides(sub, args.positional[1], { updateGolden: args.updateGolden, json: args.json, verifyFixes: args.verifyFixes });
+      code = await slides(sub, args.positional[1], { updateGolden: args.updateGolden, json: args.json, verifyFixes: args.verifyFixes, noGif: args.noGif });
       break;
     }
     case 'status': {

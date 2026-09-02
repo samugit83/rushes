@@ -14,6 +14,7 @@ export interface Args {
   strict: boolean;
   updateGolden: boolean;
   verifyFixes?: boolean;
+  noGif: boolean;
   allowLowMemory: boolean;
   allowConcurrentScan: boolean;
   nonInteractive: boolean;
@@ -45,6 +46,7 @@ export function parseArgs(argv: string[]): Args {
     strict: flags.has('--strict'),
     updateGolden: flags.has('--update-golden'),
     verifyFixes: flags.has('--no-verify-fixes') ? false : flags.has('--verify-fixes') ? true : undefined,
+    noGif: flags.has('--no-gif'),
     allowLowMemory: flags.has('--allow-low-memory'),
     allowConcurrentScan: flags.has('--allow-concurrent-scan'),
     nonInteractive: flags.has('--non-interactive'),

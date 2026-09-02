@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.8
+
+You can now see a slide's motion before recording, and the motion is bolder.
+
+- **`slides preview` produces a gif for every animated slide.** A still can't
+  show flowing edges or a beat pulse, so a reviewer approved a design without
+  ever seeing it move — the same blind spot that let a frozen video ship. The
+  preview now captures the living slide (no `data-still`, exactly as the recorder
+  films it) as a short gif, and the contact sheet plays it. Static slides get no
+  gif — a gif of a still is just a heavier still. `--no-gif` skips it; a missing
+  ffmpeg degrades to "no gif", never a false pass.
+- **Stronger diagram style.** The box glow, gradient and border were dialled up
+  so the depth and the semantic colour read at a glance instead of being barely
+  perceptible; connector glow is brighter too.
+
 ## 1.0.7
 
 The freeze-dead-air optimisation was freezing the diagrams, making a slide sit

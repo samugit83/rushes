@@ -18,6 +18,7 @@ import { slidePaths, demoPaths, ensureDir, projectRoot } from '../paths.ts';
 import { Diagnostics, printDiagnostics } from '../diagnostics.ts';
 import { compileDeck } from '../slides/compile.ts';
 import { renderSlides, writeContactSheet } from '../slides/render.ts';
+import { captureGifs } from '../slides/gif.ts';
 import { checkSlides, checkGoldens } from '../slides/check.ts';
 import { verifyFixes } from '../slides/repair.ts';
 import { extractTokens, writeProjectTokens, summarise } from '../slides/tokens.ts';
@@ -26,7 +27,7 @@ import { boot } from '../engine/session.ts';
 export async function slides(
   sub: string,
   id: string | undefined,
-  opts: { updateGolden: boolean; json: boolean; verifyFixes?: boolean },
+  opts: { updateGolden: boolean; json: boolean; verifyFixes?: boolean; noGif?: boolean },
 ): Promise<number> {
   const problems = new Diagnostics();
   const loaded = loadConfig();
@@ -78,7 +79,18 @@ export async function slides(
   }
 
   if (sub === 'preview') {
-    const sheet = writeContactSheet(join(outDir, 'contact-sheet.html'), rendered, `slides — ${id ?? basename(projectRoot())}`);
+    // Animated slides get a gif so the motion — flowing edges, beat pulses — is
+    // visible at preview time, not discovered only in the recorded video.
+    let gifs: Record<string, string> = {};
+    if (!opts.noGif) {
+      const before = Date.now();
+      const results = await captureGifs({ deckPath: compiled.deckPath, slides: compiled.slides, outDir });
+      for (const g of results) if (g.gif) gifs[g.id] = g.gif;
+      const n = Object.keys(gifs).length;
+      if (n) process.stderr.write(`  captured ${n} motion preview${n === 1 ? '' : 's'} (gif) in ${((Date.now() - before) / 1000).toFixed(1)}s\n`);
+      else if (results.some((r) => r.note)) process.stderr.write(`  motion preview skipped: ${results.find((r) => r.note)!.note}\n`);
+    }
+    const sheet = writeContactSheet(join(outDir, 'contact-sheet.html'), rendered, `slides — ${id ?? basename(projectRoot())}`, gifs);
     process.stderr.write(`\n  ${rendered.length} slides rendered\n`);
     for (const r of rendered) {
       const m = r.measurement;

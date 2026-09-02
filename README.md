@@ -337,6 +337,75 @@ failure is structured data, a stable code, the exact subject, the measured
 evidence, and an enumerated list of repairs, so the agent that wrote the
 storyboard can converge instead of guess.
 
+## "Can't I just ask my agent to write a Playwright script?"
+
+Yes. It will work, and you will get a file. The difference is everything that
+happens after the file exists.
+
+**A script tells you it succeeded when the script ran.** It says exactly the
+same thing when:
+
+- every click missed and you filmed a page that never changed
+- the app was signed out and you filmed a login screen for ninety seconds
+- the audio track came out silent
+- a scene is a black rectangle because a route 404'd
+- a customer's API key was on screen in scene three
+
+Rushes opens the finished mp4 and measures it. If any of the above happened,
+nothing is delivered and it tells you which one.
+
+Here is the same job, both ways.
+
+| | a hand-written script | Rushes |
+|---|---|---|
+| "did it work?" | the script exited 0 | the finished mp4 was measured |
+| waiting for the page | `waitForTimeout(2000)` | waits until nothing is loading, no animation is running and the app's own spinner is gone, and names the one that never happened |
+| narration length | you guess, so it gets cut off or leaves dead air | the voice is made first and measured; the picture is held to it |
+| the mouse cursor | invisible, because headless records the page, not the desktop | drawn, and glided onto each target |
+| a step breaks | a stack trace | the scene, the step, a screenshot of that moment, the three closest strings that *were* on screen, and a list of fixes known to work |
+| a bad run | overwrites your last good video | builds in a temp folder; a failure leaves the good file untouched |
+| you edit one caption | re-record everything | re-cut from the existing recording, no voice re-billed |
+| your UI changes next month | you find out from a viewer | it tells you which published videos are now out of date |
+
+### The eight things you would otherwise build yourself
+
+1. **Proof, not hope.** Every scene declares what must be on screen when it
+   ends. If it isn't, the build fails. A script has no idea what "correct"
+   looks like.
+2. **A rehearsal.** It runs the whole thing twice, silently, before recording.
+   If the two runs disagree, it refuses to record — so a flaky app costs you
+   nothing instead of a wasted take.
+3. **The voice is the clock.** Narration is synthesised and measured first, and
+   every scene is held at least that long. A sentence can never be cut off.
+4. **Real waiting.** Not a sleep. Readiness is a measurement, which is also why
+   the same engine films Django, Rails, Next.js and a static site with no
+   framework detection anywhere.
+5. **A repair loop that converges.** Failures come back as structured data with
+   an enumerated list of repairs, so your agent picks a fix instead of guessing
+   — and it knows when to stop instead of looping.
+6. **Safety you would not think to add.** It won't hand your login credentials
+   to a third-party site, won't reach an internal address or cloud metadata by
+   accident, scans every scene for keys and tokens on screen, and refuses to
+   run a start command from a config file without you typing yes.
+7. **Everything from one source.** Subtitles in both formats, chapters, a
+   thumbnail, a description and a social post, all consistent with the cut.
+8. **A receipt.** The video is bound by hash to the storyboard that made it, so
+   publishing can refuse when they no longer match.
+
+And one that only shows up later: at video twelve, the hard part is no longer
+making a video. It is knowing which of the twelve are still true.
+
+### When a plain script really is the better choice
+
+- a fifteen-second silent clip you will watch once and throw away
+- you have no ffmpeg, no Chrome, or no voice keys
+- you want to hand-edit it afterwards in a real editor
+- it isn't a web app: desktop, mobile and terminal are all out of scope
+
+For a throwaway clip, write the script. For a video that goes somewhere public,
+shows real data, or will need re-recording as the product moves, the expensive
+part is the checking — and that is what this is.
+
 ## Why this is different
 
 Twenty-five projects can drive a browser and call a text-to-speech API. Here is
@@ -632,7 +701,7 @@ Full model: [`SECURITY.md`](SECURITY.md).
 <!-- generated:versions -->
 | | |
 |---|---|
-| version | `1.0.7` |
+| version | `1.0.8` |
 | node | `>=22.6.0` |
 | license | `MIT` |
 | dependencies | `ajv@8.20.0`, `ajv-formats@3.0.1`, `playwright@1.62.1` |
