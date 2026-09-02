@@ -40,11 +40,10 @@ looking at four things.
 npx skills add samugit83/rushes -g
 ```
 
-> **Not published yet.** That repository does not exist at the time of writing, so
-> the command above returns a 404. Until it is published, install from a local
-> clone instead:
+> **Prefer to work from a clone?** Development, or any change you want to make to
+> the skill itself, starts here instead:
 > ```bash
-> git clone <this-repo> ~/rushes && cd ~/rushes && npm install
+> git clone https://github.com/samugit83/rushes.git ~/rushes && cd ~/rushes && npm install
 > npm link                                             # gives you `rushes`
 > mkdir -p ~/.claude/skills && ln -s ~/rushes ~/.claude/skills/rushes
 > ```
