@@ -446,3 +446,35 @@ await test('setup: the printed command matches the package manager, not the OS f
   assert(!/^sudo /.test(unknown.command), 'do not invent a package manager');
   assert(unknown.note, 'and say why there is no exact command');
 });
+
+// The anti-scatter guardrail: running with no --project inside someone's repo
+// must refuse rather than turning that repo into a rushes project. This is the
+// single most common way the tool made a mess — a session ran it from a product
+// checkout and rushes.config.json, demos/, slides/ and out/ rained down.
+await test('a project command refuses to scatter into an existing repo', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, mkdirSync, rmSync, existsSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join, dirname } = await import('node:path');
+  const bin = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..', 'bin', 'rushes.mjs');
+
+  const repo = mkdtempSync(join(tmpdir(), 'rushes-repo-'));
+  mkdirSync(join(repo, '.git')); // it looks like a checkout, not a rushes project
+  try {
+    const cleanEnv = { ...process.env };
+    delete cleanEnv.RUSHES_PROJECT_ROOT; // exercise the true cwd fallback
+    const r = spawnSync('node', [bin, 'init'], { cwd: repo, encoding: 'utf8', env: cleanEnv });
+    const out = (r.stderr || '') + (r.stdout || '');
+    assert(r.status !== 0, 'init must exit non-zero inside a foreign repo');
+    assert(/will not scatter/.test(out), 'and say why, naming the scatter');
+    assert(/--project/.test(out), 'and point at the --project escape hatch');
+    assert(!existsSync(join(repo, 'rushes.config.json')), 'and write nothing into the repo');
+    // The escape hatch itself must still work: --project into a clean dir.
+    const proj = join(repo, 'nested-clean');
+    const ok = spawnSync('node', [bin, 'init', '--project', proj], { encoding: 'utf8', env: cleanEnv });
+    assert(ok.status === 0 && existsSync(join(proj, 'rushes.config.json')),
+      '--project into a clean folder still works');
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});

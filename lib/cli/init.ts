@@ -9,7 +9,8 @@
 // measured. The moment there is an `if (isNextJs)` in the engine, portability is
 // a claim rather than a property.
 
-import { writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { chromium } from 'playwright';
 import { configPath, type ProjectConfig } from '../projectConfig.ts';
 import { projectRoot } from '../paths.ts';
@@ -106,6 +107,10 @@ export async function init(baseUrl: string): Promise<number> {
     ...(detected.consentText ? { dismiss: [{ locator: { text: detected.consentText }, optional: true }] } : {}),
   };
 
+  // Create the project folder if it does not exist yet, so
+  // `rushes init --project ~/rushes-projects/my-app` works in one step instead
+  // of failing on a missing directory.
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
   process.stderr.write(`\n✓ wrote ${path}\n`);
   process.stderr.write(`  framework:  ${detected.framework ?? 'not detected (the engine does not care)'}\n`);

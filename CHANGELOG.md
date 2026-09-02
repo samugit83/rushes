@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.4
+
+Keeps rushes from scattering project files across a directory that was never
+meant to be a rushes project.
+
+- **A project command run with no `--project`, from inside an existing
+  repository (a directory with a `.git`), now refuses** instead of turning that
+  repo into a rushes project and raining `rushes.config.json`, `demos/`,
+  `slides/` and `out/` across it. The refusal names a dedicated
+  `~/rushes-projects/<name>` folder and the `--project` flag. An explicit
+  `--project` or `RUSHES_PROJECT_ROOT` is the override, and a plain empty
+  directory still works as before.
+- **`init` now creates the project folder if it does not exist**, so
+  `rushes init --project ~/rushes-projects/my-app` works in one step.
+
 ## 1.0.3
 
 - **Hub diagrams no longer cramp their vertical satellites.** On a wide 16:9

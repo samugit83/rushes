@@ -47,8 +47,48 @@ const args = parseArgs(process.argv.slice(2));
 
 // Every path in the tool is resolved against the project being filmed, not
 // against the skill: the skill is installed once and films many projects.
+let fellBackToCwd = false;
 if (args.project) process.env.RUSHES_PROJECT_ROOT = resolve(args.project);
-else if (!process.env.RUSHES_PROJECT_ROOT) process.env.RUSHES_PROJECT_ROOT = process.cwd();
+else if (process.env.RUSHES_PROJECT_ROOT) { /* explicit, honoured as-is */ }
+else { process.env.RUSHES_PROJECT_ROOT = process.cwd(); fellBackToCwd = true; }
+
+// A rushes PROJECT is a dedicated directory that holds one config, the
+// storyboards, the slides, and the out/ artifacts. The single most common way
+// to make a mess is to run a command with no --project from inside a directory
+// that is somebody's actual repository: rushes then treats that repo as a new
+// project and scatters rushes.config.json, demos/, slides/ and out/ across it.
+//
+// So: when we fell back to the current directory, it is not already a rushes
+// project (no config), and it is clearly an existing checkout (it has a .git),
+// refuse the write and point at a dedicated folder. `--project` is the explicit
+// override for anyone who really does want files here.
+{
+  const projectRoot = process.env.RUSHES_PROJECT_ROOT;
+  const readOnly = new Set(['doctor', 'setup', 'help', 'publish-auth', 'status']);
+  const isProject = existsSync(join(projectRoot, 'rushes.config.json'));
+  const isExistingRepo = existsSync(join(projectRoot, '.git'));
+  if (fellBackToCwd && !readOnly.has(args.command) && !isProject && isExistingRepo) {
+    const name = (args.positional[0] || 'my-app').replace(/[^a-zA-Z0-9._-]/g, '-');
+    process.stderr.write(
+      `
+rushes will not scatter project files into ${projectRoot}
+` +
+      `— that directory is an existing repository (it has a .git), not a rushes project.
+
+` +
+      `A rushes project is its own folder holding the config, storyboards, slides and out/.
+` +
+      `Point at a dedicated one instead:
+
+` +
+      `  rushes ${args.command}${args.positional[0] ? ' ' + args.positional[0] : ''} --project ~/rushes-projects/${name}
+
+` +
+      `Everything for that video then lives under that single folder, and nothing lands here.
+`);
+    process.exit(1);
+  }
+}
 
 const needsId = ['discover', 'score', 'rerun', 'validate', 'rehearse', 'build', 'deliver', 'evidence', 'recut', 'formats', 'check', 'publish', 'clean'];
 const id = args.positional[0];
