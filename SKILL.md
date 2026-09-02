@@ -5,8 +5,10 @@ description: >-
   driving its real UI in a real browser. Use when asked to make a product demo,
   a screen recording with narration, a feature walkthrough, an app tour, a
   release video, a YouTube demo, a Loom-style explainer, or to turn a web app
-  into a video. Works with Django, Rails, Next.js, a static site, or any other
-  web framework; nothing about the framework is assumed.
+  into a video. Works with ANY web application reachable in a browser, whatever
+  built it: Django, Rails, Laravel, Next.js, Spring, .NET, Go, a static site, a
+  canvas or WebGL dashboard, or an internal tool behind a login. Nothing about
+  the framework is assumed, and nothing about it is detected at run time.
 license: MIT
 metadata:
   version: 1.0.9
@@ -217,7 +219,7 @@ demo_id:            tour
 artifact:           /abs/path/out/tour/tour.mp4
 storyboard_sha256:  <from the receipt>
 artifact_sha256:    <from the receipt>
-validation:         21/21 showcase, 0 errors, 1 warning
+validation:         45/46 showcase, 0 errors, 1 warning
 rehearsal:          agreed
 frame_evidence:     passed
 narration_check:    verified

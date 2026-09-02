@@ -81,8 +81,10 @@ pages and excludes the pools the kernel reclaims on demand, so a 32 GB machine
 reports a few hundred megabytes).
 
 Each is answered once, there. `test/run.mjs portability` greps the whole source
-for the POSIX-only forms and fails if one escapes that module, and CI runs the
-suite on Linux, macOS and Windows so the grep is backed by an execution.
+for the POSIX-only forms and fails if one escapes that module, and its own tests
+exercise the macOS and Windows branches as pure functions from any platform. A
+grep proves a construct is absent; running the suite on a machine is what proves
+that machine, and there is no CI doing it for you.
 
 Turning a path into a URL belongs to the same rule: `pathToFileURL`, never
 `` `file://${path}` ``, and `fileURLToPath(import.meta.url)`, never

@@ -19,8 +19,12 @@ Rushes turns a web application into a demo video. You describe the demo, your
 coding agent writes a storyboard, and Rushes drives your real UI in a real browser,
 narrates each scene, and cuts it together with captions and chapters. Then it
 checks the result: every step resolved, every scene shows what the voice claims,
-no dead air, no secrets on screen. If a check fails, nothing is delivered. Works
-with Django, Rails, Next.js, or a static site. Two API keys, both for the voice.
+no dead air, no secrets on screen. If a check fails, nothing is delivered.
+
+**It works with any web application you can open in a browser**, whatever built
+it. Django, Rails, Laravel, Next.js, Spring, .NET, a Go binary serving templates,
+a canvas-heavy dashboard, an internal tool behind a login, or a single HTML file
+on disk. The engine has no idea which, and a test makes sure it never learns.
 
 ## The whole journey, start to finish
 
@@ -140,13 +144,19 @@ claude
 
 Your app should be running, the way you normally run it.
 
+Nothing is ever written into that repository. Rushes keeps each video in its own
+folder: the config, the storyboards, the slides and `out/`. It refuses
+outright to scatter them through a checkout it finds itself standing in. The
+agent creates that folder for you (`~/rushes-projects/my-app` by convention) and
+tells you where it is at GATE 1.
+
 ### Step 5. Ask for the video in ordinary words
 
 Type this into the chat. That sentence is what starts everything:
 
 > make a demo video showing how the reports page works
 
-That is genuinely enough — the agent asks what it needs and discovers the rest by
+That is genuinely enough. The agent asks what it needs and discovers the rest by
 looking at your app.
 
 #### Or direct it, scene by scene
@@ -192,17 +202,17 @@ about four minutes, for a developer evaluating us.
 | What you asked for | What Rushes does with it |
 |---|---|
 | **1.** an intro slide | a `composed` slide using the `flow-row` block. The palette and typeface are extracted from your running app, so it does not arrive looking like a stock template. Every slide is measured after rendering: text below the size floor, contrast under 4.5:1, anything outside the frame, and text too small once projected into a 640px player all fail |
-| **2.** navigate, interact, create | live scenes driven by visible text and ARIA roles rather than CSS classes, so they survive a refactor. The create step gets an `expect` on the empty state — a video of a form that never submitted cannot be delivered |
+| **2.** navigate, interact, create | live scenes driven by visible text and ARIA roles rather than CSS classes, so they survive a refactor. The create step gets an `expect` on the empty state, so a video of a form that never submitted cannot be delivered |
 | **3.** a diagram from the real code | the agent reads the folders you named and drafts a slide with a **topology**, not a picture. Connectors are drawn after layout from the measured boxes and then checked: a route through a box it does not connect is a hard failure at every profile |
-| **3.** "lighting up each box as you name it" | slide **beats**, anchored to a *word* in the narration. The voice provider returns character-level timings, so `focus`, `reveal` and `travel` fire on the word — and a reworded sentence, or a different voice, re-syncs every beat with no edit. A beat that never fired fails the build at the publishable profile, rather than being something you notice on the fourth viewing |
-| **4.** filter, sort, export | more live scenes. If the narration says a number, bind it with an `assert` and it is checked against live data before recording — a figure that was true when you wrote it and false when it filmed is the failure that cannot be fixed after upload |
+| **3.** "lighting up each box as you name it" | slide **beats**, anchored to a *word* in the narration. The voice provider returns character-level timings, so `focus`, `reveal` and `travel` fire on the word, and a reworded sentence, or a different voice, re-syncs every beat with no edit. A beat that never fired fails the build at the publishable profile, rather than being something you notice on the fourth viewing |
+| **4.** filter, sort, export | more live scenes. If the narration says a number, bind it with an `assert` and it is checked against live data before recording. A figure that was true when you wrote it and false when it filmed is the failure that cannot be fixed after upload |
 | **5.** read an external page | an off-origin visit. The host must be listed in `external.allow`, it is filmed from a **fresh browser context that never held your credentials**, only a picture crosses back, and the source URL stays on screen. Mark the scene `volatile`: someone else's page rotates its content, and the rehearsal must not demand it be identical twice |
-| **6.** "explore it yourself" | `rushes discover` walks the section and drafts scenes whose `expect`s are pre-filled from elements it actually saw. It is a proposal, never a recording — you approve the outline at Gate 2 first |
+| **6.** "explore it yourself" | `rushes discover` walks the section and drafts scenes whose `expect`s are pre-filled from elements it actually saw. It is a proposal, never a recording: you approve the outline at Gate 2 first |
 | **7.** a closing slide | a final slide scene plus the outro card, both on the same palette |
 | **"about four minutes"** | scene pacing, and the advisory score sheet afterwards: mean scene length, motion share, reading rate, dead air |
 
 You still get the five questions, and it still stops at the four gates. A longer
-prompt changes the storyboard — never the checks, and never what may be published
+prompt changes the storyboard, never the checks, and never what may be published
 without your say-so.
 
 ### Step 6. Answer five questions
@@ -252,6 +262,9 @@ The agent stops and waits at each of these. Nothing happens until you reply.
 ```text
 Claude GATE 1 - here is what I understood:
          app        http://localhost:8000, signed in as demo@acme.test
+         project    ~/rushes-projects/my-app - a dedicated folder for the
+                    config, storyboards and out/. Your app's repo is only
+                    filmed, never written to.
          palette    extracted from your app: bg #0f1117, accent #4ade80,
                     font Inter
          shape      demo-led, 7 scenes, ~3 min, dark, calm explainer
@@ -296,9 +309,12 @@ Claude GATE 3 - done. 21/21 showcase, 0 errors, 1 warning.
 
 ### Step 8. Watch it
 
-Your video is in your project, under `out/<demo-id>/`:
+Your video is in the rushes project folder from GATE 1, the dedicated one
+rather than your app's repository, under `out/<demo-id>/`:
 
 ```bash
+cd ~/rushes-projects/my-app
+
 xdg-open out/reports-tour/reports-tour.mp4        # Linux
 open     out/reports-tour/reports-tour.mp4        # macOS
 start "" out\reports-tour\reports-tour.mp4        # Windows
@@ -326,9 +342,12 @@ three things, once.
 **9a. Get a Google OAuth client.** In the
 [Google Cloud console](https://console.cloud.google.com/apis/credentials):
 enable the *YouTube Data API v3*, then **Create credentials → OAuth client ID →
-Desktop app**, and download the JSON. Put it in your project:
+Desktop app**, and download the JSON. Put it in the rushes project folder,
+the same one the video came out of:
 
 ```bash
+cd ~/rushes-projects/my-app
+
 mkdir -p credentials
 mv ~/Downloads/client_secret_*.json credentials/client_secret.json
 ```
@@ -369,9 +388,10 @@ Claude Uploading reports-tour, privacy unlisted.
          out/reports-tour/reports-tour.linkedin.txt
 ```
 
-The upload **refuses** unless all five hold: a receipt exists, it was produced at
-the showcase profile, it recorded zero errors, and both the storyboard hash and
-the video hash still match the bytes on disk. Edit the storyboard after recording
+The upload **refuses** unless all six hold: a receipt exists, it was produced at
+the showcase profile, it recorded zero errors, both the storyboard hash and the
+video hash still match the bytes on disk, and every auditable field is present
+so the publish stays reconstructable afterwards. Edit the storyboard after recording
 and the publish is refused, because the chapter timestamps would no longer match
 the video.
 
@@ -432,16 +452,16 @@ Here is the same job, both ways.
    ends. If it isn't, the build fails. A script has no idea what "correct"
    looks like.
 2. **A rehearsal.** It runs the whole thing twice, silently, before recording.
-   If the two runs disagree, it refuses to record — so a flaky app costs you
+   If the two runs disagree, it refuses to record, so a flaky app costs you
    nothing instead of a wasted take.
 3. **The voice is the clock.** Narration is synthesised and measured first, and
    every scene is held at least that long. A sentence can never be cut off.
 4. **Real waiting.** Not a sleep. Readiness is a measurement, which is also why
-   the same engine films Django, Rails, Next.js and a static site with no
-   framework detection anywhere.
+   the same engine films a Django page, a hydrating SPA and a static file with
+   no framework detection anywhere. It never asks which one it is looking at.
 5. **A repair loop that converges.** Failures come back as structured data with
-   an enumerated list of repairs, so your agent picks a fix instead of guessing
-   — and it knows when to stop instead of looping.
+   an enumerated list of repairs, so your agent picks a fix instead of guessing,
+   and it knows when to stop instead of looping.
 6. **Safety you would not think to add.** It won't hand your login credentials
    to a third-party site, won't reach an internal address or cloud metadata by
    accident, scans every scene for keys and tokens on screen, and refuses to
@@ -463,7 +483,7 @@ making a video. It is knowing which of the twelve are still true.
 
 For a throwaway clip, write the script. For a video that goes somewhere public,
 shows real data, or will need re-recording as the product moves, the expensive
-part is the checking — and that is what this is.
+part is the checking, and that is what this is.
 
 ## Why this is different
 
@@ -477,7 +497,7 @@ what happens after the file exists.
   "profile": "showcase",
   "storyboard": { "sha256": "9f2c…", "bytes": 8412 },
   "artifact":   { "sha256": "b71a…", "durationMs": 172400 },
-  "summary":    { "errors": 0, "warnings": 1, "checks": "21/21" },
+  "summary":    { "errors": 0, "warnings": 1, "checks": "45/46" },
   "rehearsal":      { "status": "agreed", "passes": 2 },
   "frameEvidence":  { "status": "passed", "frames": 10 },
   "narrationCheck": { "verified": 10, "unverified": 0, "inconclusive": 0 },
@@ -495,24 +515,33 @@ from the bundled fixture recorded with the local silent voice at the publishable
 profile:
 
 ```text
+  ✗ rehearsal_agreed
+      rehearsal was not run
   ✗ audio_present
       mean volume -91 dB
+  ⚠ audio_loudness
+      integrated loudness unmeasurable LUFS
   ✓ privacy_clean
   ✓ never_show_clean
   ✓ egress_policy
   ✓ external_credential_free
   ✓ file_scope
   ✓ secret_scrub
-  28/31 showcase, 2 errors, 1 warnings
+  ✓ receipt_auditable
+  29/32 showcase, 2 errors, 1 warnings
 
 checks failed: nothing was delivered, and the previous artifact is untouched.
 
   ✗ audio/silent-track                 mean volume -91 dB is outside the usable band
-      at   artifact=out/tour/.staging-RDYfQ6/tour.mp4
+      at   artifact=out/tour/.staging-Iw5c0M/tour.mp4
       meanDb: -91
+      maxDb: -91
       fix: check the narration clips mixed in
       fix: re-run the mux
 ```
+
+(32 active rather than the full 46, because that fixture has no slides and the
+slide checks only run when there are slides to measure.)
 
 A locator failure reads the same way, and carries the frame it was looking at:
 
@@ -530,11 +559,37 @@ A locator failure reads the same way, and carries the frame it was looking at:
 never inferred and never claimed on their behalf. `skipped` means a tool was
 unavailable, and never that a check passed.
 
-## Works with any framework
+## What it can film
 
-Not a claim, a suite. Each fixture is a small server that reproduces a SHAPE,
-and the engine drives all of them with one storyboard vocabulary and no
-framework detection anywhere.
+**If you can open it in a browser and click through it, Rushes can film it.**
+That is the whole rule. The tool never asks what your app is written in, because
+nothing in it would do anything different with the answer.
+
+**Yes:**
+
+- any language or stack: Python, Ruby, PHP, Java, .NET, Go, Node, Elixir, Rust,
+  or no backend at all
+- server-rendered pages, single-page apps, hybrids, WebAssembly
+- canvas and WebGL surfaces: graphs, maps, editors, diagrams. There is a step
+  kind that clicks *inside* a canvas by reading the painted pixels, because a
+  force-directed graph has no DOM node to aim at
+- anything behind a login: session cookies, SSO, 2FA, a bearer header, basic auth
+- `localhost`, a machine on your network, or a public URL
+- a page you do not own, as one scene of a longer video, filmed from a browser
+  context that never held your credentials
+
+**No:**
+
+- native desktop, mobile, and terminal applications. A browser is the boundary
+- **Chromium is the engine.** If your app renders correctly only in Firefox or
+  Safari, this films the Chromium version of it
+- it has to be reachable at a URL. Link-local and carrier-grade-NAT addresses are
+  refused, and so are government, military and academic domains
+
+### Not a claim, a suite
+
+Each conformance fixture is a small server reproducing a *shape*, and one engine
+drives all of them with one storyboard vocabulary.
 
 | Fixture | Auth | Readiness | Proves |
 |---|---|---|---|
@@ -547,9 +602,16 @@ framework detection anywhere.
 node test/run.mjs conformance
 ```
 
-Readiness is measured, never waited out: `readyState`, then network quiet, then
-no running animation, then optionally the app's own busy selector. There is no
-`if (isNextJs)` anywhere in the engine, and a test greps for it.
+They are deliberately **not** Django and **not** Next.js. What they reproduce is
+the behaviour that breaks a framework assumption, and an engine that survives
+both survives the frameworks that have those shapes.
+
+The reason it generalises is that readiness is *measured*, never waited out:
+`readyState`, then network quiet, then no running animation, then optionally the
+app's own busy selector. `rushes init` may detect a framework in order to
+scaffold a config for you, but the engine must never branch on one at run time.
+There is no `if (isNextJs)` anywhere in it, and
+[`test/neutrality.test.mjs`](test/neutrality.test.mjs) greps for exactly that.
 
 ## Two registers, one video
 
@@ -581,6 +643,7 @@ something needs checking.
 ### Try it with no app and no configuration at all
 
 ```bash
+cd ~                # anywhere that is not a git checkout
 rushes demo
 ```
 
@@ -589,6 +652,15 @@ it on a free port, waits until it answers, films it, and stops it again. A real
 MP4 lands in `./rushes-demo/out/tour/` in about two minutes. Worth running once
 after installing, to prove your machine is set up before your own app is
 involved.
+
+That `cd` is not decoration. `demo` writes its folder under the directory you
+are standing in, and the same guard that keeps rushes out of your source tree
+refuses it inside a git checkout, including the Step 1 clone. From inside one,
+name the destination twice to be explicit about both:
+
+```bash
+rushes demo ~/rushes-demo --project ~/rushes-demo
+```
 
 ### When something is not working
 
@@ -601,7 +673,11 @@ command that installs each. Run this first, always.
 
 ### Driving it yourself
 
-The agent runs these for you. You can run them too:
+The agent runs these for you. You can run them too, from inside the project
+folder, or from anywhere with `--project ~/rushes-projects/my-app`. Only
+`setup`, `doctor`, `status`, `help` and `publish-auth` write nothing and need no
+project at all; every other command run with no `--project` from inside a git
+checkout is refused rather than allowed to scatter files through it.
 
 <!-- generated:commands -->
 | Command | What it does |
@@ -636,7 +712,8 @@ disagree, and `deliver` is the only one that spends anything.
 
 ### Writing the config by hand
 
-Three lines is a valid config:
+`rushes.config.json` sits at the root of the project folder, alongside `demos/`,
+`slides/` and `out/`. One line is a valid one:
 
 ```jsonc
 { "baseUrl": "http://localhost:8000" }
@@ -724,14 +801,20 @@ publicly, so the constraints are stated out loud rather than assumed.
   system's secret. A build fails if its own `.env` grows a third key.
 - **Auth is a browser state file you captured, or an env var you already export.**
   `rushes login` opens a headed browser, you sign in, and the skill never sees
-  the credential. The state file is written `0600` and can never enter the
-  packaged payload.
+  the credential. The state file is written `0600` on Linux and macOS, inherits
+  the folder's ACL on Windows, and can never enter the packaged payload.
 - **Every host is classified on its resolved IP**, not its name, with every
   redirect hop re-checked and the passing address pinned for the connection.
-- **Leaving your app's origin strips credentials**, and `file://` is confined to
-  the compiled slide directory. Neither is configurable.
-- **Every frame is scanned** for key-shaped strings and for your own never-show
-  list, and a hit is an error at every quality profile.
+- **Leaving your app's origin carries no credentials.** The off-origin page is
+  filmed from a brand-new browser context that was never given your cookies,
+  headers or HTTP credentials, so there is nothing to strip; only a picture
+  crosses back. `file://` is confined to the compiled slide directory. Neither
+  is configurable.
+- **Every scene's visible text is scanned** for key-shaped strings, and your
+  never-show list is matched against the text and the narration. A hit is an
+  error at every quality profile. It reads the page, not the pixels: text
+  rendered inside a canvas or an image is not covered, which is why the answer
+  to question 4 at intake still matters.
 - **A command in a config never auto-runs.** It is printed with its working
   directory and the config's sha256, and approval is recorded against that hash,
   so any edit invalidates it.
@@ -745,7 +828,7 @@ Full model: [`SECURITY.md`](SECURITY.md).
 
 **Linux, macOS and Windows.** Same pipeline, same checks, same output on all
 three. Node 22.6 or newer is the only hard requirement, plus ffmpeg and a
-browser — and `rushes setup` handles the browser and prints the one command for
+browser, and `rushes setup` handles the browser and prints the one command for
 ffmpeg on the package manager you actually have.
 
 | | Linux | macOS | Windows |
@@ -755,7 +838,7 @@ ffmpeg on the package manager you actually have.
 | install ffmpeg with | `apt` `dnf` `pacman` `zypper` `apk` | `brew` | `winget` `choco` `scoop` |
 | where the browser is found | PATH, then the engine's own | PATH, `/Applications`, then the engine's own | PATH, Program Files, then the engine's own |
 | stopping an app started by `runner` | process group | process group | `taskkill /T` on the process tree |
-| the saved login state (`.rushes/state.json`) | mode `0600` | mode `0600` | the folder's ACL — see below |
+| the saved login state (`.rushes/state.json`) | mode `0600` | mode `0600` | the folder's ACL, see below |
 
 Run `rushes doctor` first on any machine. Its first line names the platform, and
 every row tells you what is missing and the exact command that fixes it.
@@ -772,7 +855,7 @@ every row tells you what is missing and the exact command that fixes it.
 - **ffmpeg is the one thing you install yourself**: `brew install ffmpeg`.
   Homebrew writes into a prefix you own, so no `sudo` is involved.
 - The "not enough memory" refusal counts memory macOS will actually hand back,
-  not just the free-page number — which is a few hundred megabytes on a healthy
+  not just the free-page number, which is a few hundred megabytes on a healthy
   Mac and would otherwise refuse to record on a machine with plenty to spare.
 
 ### If you are on Windows
@@ -786,13 +869,13 @@ every row tells you what is missing and the exact command that fixes it.
   `rushes setup` fetches one.
 - **`runner.start` is your command, not ours.** Rushes starts it and stops its
   whole process tree, but the command string itself has to be one your shell
-  understands — write it for Windows, or skip the `runner` block and start the
+  understands. Write it for Windows, or skip the `runner` block and start the
   app in another terminal yourself.
 - **The saved login state cannot be locked down the way it is elsewhere.**
   Windows has no POSIX permission bits, so `.rushes/state.json` inherits the
   folder's ACL instead of being `0600`. It is a bearer credential: anyone
   holding it is signed in as you. On a shared machine, restrict the `.rushes`
-  folder — and on every machine, add `.rushes/` to your `.gitignore`, which is
+  folder, and on every machine add `.rushes/` to your `.gitignore`, which is
   what `rushes login` reminds you to do when it saves the file.
 - Environment variables use PowerShell syntax, and `rushes doctor` prints them
   that way: `$env:ELEVENLABS_API_KEY="sk_..."`.
@@ -800,17 +883,20 @@ every row tells you what is missing and the exact command that fixes it.
 ### How this is kept true
 
 Everything the tool assumes about an operating system lives in one file,
-[`lib/platform.ts`](lib/platform.ts) — finding a binary, running a shell command,
+[`lib/platform.ts`](lib/platform.ts): finding a binary, running a shell command,
 stopping a process tree, measuring available memory, turning a path into a URL.
 `node test/run.mjs portability` reads every other source file and fails if one of
-those decisions leaks out of that module, and the CI workflow runs the suite on
-all three operating systems rather than on Linux alone.
+those decisions leaks out of that module, so a platform-coupled call cannot creep
+back in unnoticed. There is no CI here: the suite is run by hand, and running it
+on the machine you are actually on is what confirms that machine.
 
 ## Honest limitations
 
 - **Browser only.** Native and desktop applications are a different product.
-- **Needs ffmpeg and a Chrome or Chromium binary.** Rushes detects and instructs;
-  it never downloads a browser.
+- **Needs ffmpeg and a Chrome or Chromium binary.** `rushes setup` fetches a
+  browser when you ask it to, into a cache in your home. A recording never
+  does: mid-build, a missing browser is reported, never quietly downloaded.
+  ffmpeg is always yours to install.
 - **On Windows, `runner.start` is your shell command, not ours.** Rushes starts
   it and stops its whole tree; whether the command itself is written for `cmd`
   or for a POSIX shell is up to you.

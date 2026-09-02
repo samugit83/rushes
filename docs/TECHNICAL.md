@@ -1359,11 +1359,12 @@ the containment check agrees with the filesystem on case, that the browser is
 looked for under names the running platform actually uses, and that the runner
 still spawns and stops through the two tree-aware helpers.
 
-A grep proves a construct is absent, not that the thing runs — so CI runs the
-suite on `ubuntu-latest`, `macos-latest` **and** `windows-latest`: the fast
-suites plus `doctor` on a bare machine in one job, and then the browser-and-
-ffmpeg suites (conformance, timing, determinism, slides, hardening, security)
-on all three after provisioning.
+A grep proves a construct is absent, not that the thing runs. So the two
+branches that cannot execute on the platform most of the development happens on
+are extracted as **pure functions** and tested from anywhere: `parseVmStat`
+against real `vm_stat` output, and `firstPathLine` against the CRLF multi-line
+form `where` prints. Everything else is confirmed by running the suite on the
+machine in question — there is no CI doing it (see section 19).
 
 ## 19. Tests, CI and packaging
 
