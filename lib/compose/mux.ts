@@ -56,6 +56,13 @@ export function freezeSpans(timeline: TimelineEntry[], minMs = 1200): { atMs: nu
   const out: { atMs: number; holdMs: number }[] = [];
   for (const e of timeline) {
     if (e.actionEndMs == null) continue;
+    // A slide scene animates THROUGHOUT its narration: its beats fire during the
+    // hold, AFTER actionEndMs (which for a slide is just its ~0.1s load), and the
+    // composed edges flow continuously. Freezing the frame at actionEndMs records
+    // all of that and then throws it away, leaving a static picture for the whole
+    // scene — which is precisely the "diagram never moves" and "beats never fire"
+    // bug. A slide is never dead air; never freeze one.
+    if (e.steps?.some((step) => step.do === 'slide')) continue;
     const idle = e.endMs - e.actionEndMs;
     if (idle >= minMs) out.push({ atMs: e.actionEndMs, holdMs: idle });
   }

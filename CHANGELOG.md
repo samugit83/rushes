@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.7
+
+The freeze-dead-air optimisation was freezing the diagrams, making a slide sit
+as a static image for its whole scene.
+
+- **Fix: a slide scene is never frozen.** A slide's only action is loading it
+  (~0.1s); its beats fire during the narration hold, AFTER that point, and the
+  composed edges flow continuously. The mux froze the frame at the load moment,
+  so it recorded every beat and edge animation and then threw them away — the
+  diagram, and now the glow/flow/pulse, played to a discarded buffer while the
+  finished video showed a still. Slides animate through their whole scene now;
+  only genuinely static live holds are frozen.
+
 ## 1.0.6
 
 A deep review of 1.0.5 found that the new motion moved boxes, which detaches

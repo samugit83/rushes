@@ -1,7 +1,7 @@
 {
   "skillId": "rushes",
   "channel": "stable",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "source": {
     "repository": "https://github.com/samugit83/rushes",
     "branch": "main"

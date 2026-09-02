@@ -245,6 +245,19 @@ await test('dead air becomes a freeze span, and a busy scene does not', () => {
   equal(spans[0], { atMs: 3000, holdMs: 7000 });
 });
 
+await test('a slide scene is never frozen (its beats and edges animate through the narration)', () => {
+  // A slide's only "action" is loading it (~0.1s), then it animates for the whole
+  // narration. Freezing the frame at actionEndMs recorded those animations and
+  // threw them away, leaving a static diagram for the entire scene.
+  const spans = freezeSpans([
+    { sceneId: 'diagram', startMs: 0, endMs: 30000, actionEndMs: 100, narration: '',
+      steps: [{ do: 'slide', ms: 100 }] },
+    { sceneId: 'live', startMs: 30000, endMs: 40000, actionEndMs: 32000, narration: '',
+      steps: [{ do: 'scroll', ms: 500 }] },
+  ]);
+  equal(spans.map((s) => s.atMs), [32000], 'only the live scene freezes; the slide never does');
+});
+
 // --- L4: word-anchored beats ---------------------------------------------
 
 await test('a beat anchor resolves to the start of the word it names', () => {
