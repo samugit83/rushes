@@ -1,0 +1,7 @@
+{
+  "id": "tour",
+  "brief": "A ninety-second tour of the entry ledger for someone who has never seen it. They should understand what an entry is, that the table can be filtered, and that a row opens a detail panel.",
+  "requiredScenes": ["an overview", "a filter being applied", "a row opening its detail"],
+  "semanticKeys": ["entries", "filter", "detail"],
+  "mustNotClaim": ["real customer data", "a feature that is not in the fixture"]
+}

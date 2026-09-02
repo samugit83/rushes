@@ -1,0 +1,14 @@
+# Precise, not blanket. This folder is meant to be committed, so what must never
+# be is named explicitly rather than covered by an ignore on the whole tree.
+.env
+node_modules/
+out/
+cache/
+credentials/
+.rushes/
+slides/deck.html
+*.mp4
+*.webm
+*.gif
+*.youtube.txt
+*.linkedin.txt

@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>timing fixture</title><style>
+  html,body{margin:0;width:1920px;height:1080px;background:#000;overflow:hidden}
+  #f{position:absolute;inset:0;background:#000}
+  /* One near-black pixel repaints every frame. A change-driven screencast only
+     emits a frame when the page repaints, so a perfectly static page occupies
+     far LESS time in the recording than it does on the wall clock. That is the
+     drift this whole fixture exists to measure; without the ticker the test
+     measures the recorder's frame coalescing instead. */
+  #t{position:absolute;right:0;bottom:0;width:4px;height:4px}
+</style></head><body>
+<div id="f"></div><canvas id="t" width="4" height="4"></canvas>
+<script>
+  const f = document.getElementById('f');
+  const started = Date.now();
+  window.__flashes = [];
+  // Pure white for two frames at 0, 5s, 10s and 15s.
+  for (const at of [0, 5000, 10000, 15000]) {
+    setTimeout(() => {
+      window.__flashes.push({ wanted: at, actual: Date.now() - started });
+      f.style.background = '#fff';
+      setTimeout(() => { f.style.background = '#000'; }, 70);
+    }, at);
+  }
+  const c = document.getElementById('t').getContext('2d');
+  let i = 0;
+  (function draw() { c.fillStyle = (i++ % 2) ? '#000' : '#010101'; c.fillRect(0, 0, 4, 4); requestAnimationFrame(draw); })();
+</script></body></html>

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "evidence",
+  "mode": "composed",
+  "block": "compare",
+  "kicker": "THE GATE",
+  "title": "Three tiers, never conflated",
+  "subtitle": "Passing one never implies another.",
+  "intent": "three columns of equal weight; the third must not look optional",
+  "items": [
+    {
+      "id": "tier1", "label": "Deterministic", "tone": "database",
+      "detail": "measured, repeatable",
+      "items": ["every step resolved", "every expect satisfied", "the stream, the audio, the captions"]
+    },
+    {
+      "id": "tier2", "label": "Frame evidence", "tone": "frontend",
+      "detail": "from the delivered file",
+      "items": ["a keyframe per scene", "does the picture match the voice", "skipped means the tool was absent"]
+    },
+    {
+      "id": "tier3", "label": "Human review", "tone": "security",
+      "detail": "a person watched it",
+      "items": ["never claimed on their behalf", "stays pending until they say so", "the only tier that can say published"]
+    }
+  ],
+  "notes": "`skipped` maps only to \"the tool was unavailable\". A runtime failure is `failed`, and normalising the second into the first is how a broken tool reports a clean run."
+}

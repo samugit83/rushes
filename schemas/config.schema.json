@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rushes.dev/schemas/config.schema.json",
+  "title": "rushes.config.json",
+  "description": "Everything the engine needs to know about the application it films. Lives in the filmed project's repository, never in the skill. Every string value may interpolate ${ENV_VAR} from the ambient environment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["baseUrl"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "baseUrl": { "type": "string", "description": "Where the app is." },
+    "allowHosts": {
+      "type": "array", "items": { "type": "string" },
+      "description": "Narrows the application origin further. Never widens the resolved-IP classification."
+    },
+    "egress": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "strictSubresources": {
+          "type": "boolean",
+          "description": "Refuse to resolve any name that was not classified, including subresources. Off by default: it will break an app that loads fonts or images from an unlisted host."
+        }
+      }
+    },
+    "recordingIdentity": {
+      "type": "object", "additionalProperties": false,
+      "description": "CF3: the account the recording runs as must be dedicated, not a human operator's.",
+      "properties": {
+        "label": { "type": "string" },
+        "operatorAccounts": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "runner": {
+      "type": "object", "additionalProperties": false,
+      "required": ["start", "readyWhen"],
+      "properties": {
+        "start": { "type": "string" },
+        "cwd": { "type": "string" },
+        "readyWhen": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "http": { "type": "string" },
+            "status": { "type": "integer" },
+            "log": { "type": "string" },
+            "selector": { "type": "string" }
+          }
+        },
+        "timeoutMs": { "type": "integer", "minimum": 1000 },
+        "stopAfter": { "type": "boolean" }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["none", "storage-state", "form-login", "jwt-cookie", "basic", "header"] },
+        "statePath": { "type": "string" },
+        "maxAgeHours": { "type": "number", "minimum": 0 },
+        "signedInWhen": { "$ref": "#/definitions/locator" },
+        "signedOutWhen": { "$ref": "#/definitions/locator" },
+        "path": { "type": "string" },
+        "fields": { "type": "object", "additionalProperties": { "type": "string" } },
+        "csrfField": { "type": "string" },
+        "submit": { "$ref": "#/definitions/locator" },
+        "cookie": { "type": "string" },
+        "secretEnv": { "type": "string" },
+        "alg": { "enum": ["HS256"] },
+        "claims": { "type": "object" },
+        "ttlSeconds": { "type": "integer", "minimum": 60 },
+        "user": { "type": "string" },
+        "pass": { "type": "string" },
+        "name": { "type": "string" },
+        "value": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "quietMs": { "type": "integer", "minimum": 0 },
+        "timeoutMs": { "type": "integer", "minimum": 1000 },
+        "readySelector": { "type": ["string", "null"] },
+        "busySelector": { "type": ["string", "null"] }
+      }
+    },
+    "seed": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "localStorage": { "type": "object", "additionalProperties": { "type": "string" } },
+        "sessionStorage": { "type": "object", "additionalProperties": { "type": "string" } },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["name", "value"],
+            "properties": { "name": { "type": "string" }, "value": { "type": "string" }, "path": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "preflight": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["method", "path"],
+        "properties": {
+          "method": { "enum": ["GET", "HEAD", "PATCH", "POST"] },
+          "path": { "type": "string" },
+          "json": {},
+          "restoreAfter": { "type": "boolean" },
+          "restoreKey": { "type": "string", "description": "Dotted path to the prior value in the GET response. The single key this entry changed, for the compare-and-set restore." },
+          "restoreValuePath": { "type": "string", "description": "Dotted path to the value inside `json`, so the restore is re-sent in the shape the endpoint accepts rather than as a bare key/value pair." }
+        }
+      }
+    },
+    "dismiss": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["locator"],
+        "properties": {
+          "locator": { "$ref": "#/definitions/locator" },
+          "checkAllCheckboxes": { "type": "boolean" },
+          "optional": { "type": "boolean" }
+        }
+      }
+    },
+    "colorScheme": { "enum": ["dark", "light", "no-preference"] },
+    "external": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "allow": { "type": "array", "items": { "type": "string" } },
+        "readiness": {
+          "type": "object", "additionalProperties": false,
+          "properties": { "quietMs": { "type": "integer" }, "timeoutMs": { "type": "integer" } }
+        },
+        "dismiss": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["locator"],
+            "properties": { "locator": { "$ref": "#/definitions/locator" }, "optional": { "type": "boolean" } }
+          }
+        },
+        "volatile": { "type": "boolean" },
+        "publishConsent": { "type": "string" }
+      }
+    },
+    "redact": { "type": "array", "items": { "type": "string" } },
+    "scanArtifacts": { "type": "boolean" },
+    "neverShow": { "type": "array", "items": { "type": "string" } },
+    "canvasConfirm": { "$ref": "#/definitions/locator" },
+    "brand": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "wordmark": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["text"],
+            "properties": { "text": { "type": "string" }, "color": { "type": "string" } }
+          }
+        },
+        "kicker": { "type": "string" },
+        "logo": { "type": "string" },
+        "accent": { "type": "string" },
+        "background": { "type": "string" },
+        "tokens": { "type": "string" },
+        "disclaimer": { "type": "string" },
+        "footerLine": { "type": "string" },
+        "links": { "type": "object", "additionalProperties": { "type": "string" } },
+        "closingTagline": { "type": "string" }
+      }
+    },
+    "video": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "width": { "type": "integer" }, "height": { "type": "integer" },
+        "fps": { "type": "integer" }, "bitrate": { "type": "string" }
+      }
+    },
+    "pronunciation": { "type": "object", "additionalProperties": { "type": "string" } },
+    "assertBase": { "type": "string", "description": "Optional path prefix for assert endpoints." },
+    "publish": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "youtube": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "titlePrefix": { "type": "string" },
+            "playlistId": { "type": "string" },
+            "playlistTitle": { "type": "string" },
+            "privacy": { "enum": ["public", "unlisted", "private"] },
+            "tags": { "type": "array", "items": { "type": "string" } },
+            "categoryId": { "type": "string" },
+            "footer": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "locator": {
+      "type": "object", "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "css": { "type": "string" },
+        "text": { "type": "string" },
+        "exact": { "type": "boolean" },
+        "role": { "type": "string" },
+        "name": { "type": "string" },
+        "testId": { "type": "string" },
+        "nth": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

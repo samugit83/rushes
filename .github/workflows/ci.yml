@@ -1,0 +1,64 @@
+# CI for the skill's own repository.
+#
+# NOTE for anyone reading this inside a larger monorepo: do NOT add a
+# monorepo-wide workflow as a side effect of this file. The skill's tests are
+# Node, the skill is not part of any shipped application, and its home is its own
+# repository with its own CI. An adapter is data and has no tests.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+
+      - name: type-check
+        run: npm run type-check
+
+      - name: unit + neutrality
+        run: |
+          node test/run.mjs unit
+          node test/run.mjs neutrality
+
+      - name: provision ffmpeg and a browser
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          npx playwright install --with-deps chromium
+
+      - name: conformance suite
+        run: node test/run.mjs conformance
+
+      - name: golden timing
+        run: node test/run.mjs timing
+
+      - name: README freshness
+        run: node test/run.mjs readme
+
+      - name: doctor
+        run: node bin/rushes.mjs doctor
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: deterministic packaging
+        run: |
+          node scripts/stage-clean-skill.mjs dist/skill
+          node scripts/write-deterministic-zip.mjs dist/skill dist/rushes-a.zip
+          node scripts/write-deterministic-zip.mjs dist/skill dist/rushes-b.zip
+          cmp dist/rushes-a.zip dist/rushes-b.zip

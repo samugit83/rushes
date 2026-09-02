@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "id": "tour",
+  "profile": "standard",
+  "builtAt": "2026-09-01T19:35:30.513Z",
+  "tool": {
+    "commit": "4c49924011468b3878dcf02222f2521bc158b460",
+    "version": "1.0.0"
+  },
+  "config": {
+    "sha256": "2d385efed4e1ee9cfa1692b057a3c6ade4814ee5c52f25bbdf2da108c9427048",
+    "baseUrl": "http://127.0.0.1:39785",
+    "resolvedIp": "127.0.0.1",
+    "authStrategy": "none"
+  },
+  "storyboard": {
+    "sha256": "ea6735f2d56e4dc8672e803f5a4d7d04aa8b902c13e8364f6d3ffdd40fcc2693",
+    "bytes": 2213,
+    "schemaVersion": 1
+  },
+  "artifact": {
+    "sha256": "fcdd8b0fc232332f72cad8ed3ee9de1cd391ecbc999026e6a80235a545056058",
+    "bytes": 2708195,
+    "durationMs": 51400
+  },
+  "timeline": {
+    "sha256": "4bc5eb5207fb356a7ba3552993b7abd9e2c43a58989869333ce2f91efd786152",
+    "sceneCount": 3,
+    "leadTrimMs": 3547
+  },
+  "recording": {
+    "identity": null,
+    "scope": null,
+    "hostsContacted": [
+      {
+        "host": "127.0.0.1",
+        "ip": "127.0.0.1",
+        "external": false
+      }
+    ],
+    "hostRules": "MAP 127.0.0.1 127.0.0.1,MAP localhost 127.0.0.1",
+    "preflight": [],
+    "publishConsent": "the bundled example app; it holds no real data",
+    "externalConsent": null,
+    "volatileScenes": []
+  },
+  "checks": [
+    {
+      "name": "storyboard_schema",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "config_valid",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "steps_resolved",
+      "ok": true,
+      "level": "warn",
+      "details": []
+    },
+    {
+      "name": "scene_expects",
+      "ok": true,
+      "level": "warn",
+      "details": []
+    },
+    {
+      "name": "rehearsal_agreed",
+      "ok": false,
+      "level": "ignore",
+      "details": [
+        "rehearsal was not run"
+      ]
+    },
+    {
+      "name": "timeline_complete",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "narration_covered",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "dead_air",
+      "ok": true,
+      "level": "warn",
+      "details": []
+    },
+    {
+      "name": "video_stream",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "audio_present",
+      "ok": false,
+      "level": "warn",
+      "details": [
+        "mean volume -91 dB"
+      ]
+    },
+    {
+      "name": "audio_loudness",
+      "ok": false,
+      "level": "ignore",
+      "details": [
+        "integrated loudness unmeasurable LUFS"
+      ]
+    },
+    {
+      "name": "no_black_scene",
+      "ok": true,
+      "level": "ignore",
+      "details": []
+    },
+    {
+      "name": "captions_aligned",
+      "ok": true,
+      "level": "warn",
+      "details": []
+    },
+    {
+      "name": "caption_reading_rate",
+      "ok": true,
+      "level": "ignore",
+      "details": []
+    },
+    {
+      "name": "privacy_clean",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "never_show_clean",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "assert_metrics",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "publish_consent",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "recording_identity",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "egress_policy",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "external_allowlisted",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "external_credential_free",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "file_scope",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "no_pending_restore",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "env_allowlist",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "secret_scrub",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "auth_effective",
+      "ok": true,
+      "level": "error",
+      "details": []
+    },
+    {
+      "name": "narration_check",
+      "ok": true,
+      "level": "ignore",
+      "details": [
+        "not run"
+      ]
+    },
+    {
+      "name": "youtube_meta",
+      "ok": true,
+      "level": "warn",
+      "details": []
+    },
+    {
+      "name": "engine_neutral",
+      "ok": true,
+      "level": "ignore",
+      "details": [
+        "not measured per build; enforced by `node test/run.mjs neutrality`"
+      ]
+    },
+    {
+      "name": "receipt_auditable",
+      "ok": true,
+      "level": "error",
+      "details": []
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 1,
+    "checks": "24/25",
+    "ran": 25,
+    "total": 41
+  },
+  "rehearsal": {
+    "status": "skipped",
+    "passes": 0,
+    "exemptScenes": []
+  },
+  "frameEvidence": {
+    "status": "passed",
+    "artifactSha256": "fcdd8b0fc232332f72cad8ed3ee9de1cd391ecbc999026e6a80235a545056058",
+    "frames": 3
+  },
+  "narrationCheck": {
+    "verified": 0,
+    "unverified": 0,
+    "inconclusive": 3
+  },
+  "humanReview": {
+    "status": "pending",
+    "reviewer": null
+  },
+  "diagnostics": [
+    {
+      "code": "storyboard/css-over-semantic",
+      "severity": "warning",
+      "message": "\"highlight\" targets a raw css selector",
+      "subject": {
+        "sceneId": "overview",
+        "stepIndex": 2,
+        "do": "highlight"
+      },
+      "evidence": {
+        "css": ".cards"
+      },
+      "supportedFixes": [
+        "prefer \"text\"",
+        "prefer \"role\" + \"name\"",
+        "prefer \"testId\""
+      ]
+    },
+    {
+      "code": "storyboard/css-over-semantic",
+      "severity": "warning",
+      "message": "\"type\" targets a raw css selector",
+      "subject": {
+        "sceneId": "filter",
+        "stepIndex": 0,
+        "do": "type"
+      },
+      "evidence": {
+        "css": "#q"
+      },
+      "supportedFixes": [
+        "prefer \"text\"",
+        "prefer \"role\" + \"name\"",
+        "prefer \"testId\""
+      ]
+    },
+    {
+      "code": "storyboard/css-over-semantic",
+      "severity": "warning",
+      "message": "\"highlight\" targets a raw css selector",
+      "subject": {
+        "sceneId": "detail",
+        "stepIndex": 2,
+        "do": "highlight"
+      },
+      "evidence": {
+        "css": "#detail"
+      },
+      "supportedFixes": [
+        "prefer \"text\"",
+        "prefer \"role\" + \"name\"",
+        "prefer \"testId\""
+      ]
+    },
+    {
+      "code": "audio/silent-track",
+      "severity": "error",
+      "message": "mean volume -91 dB is outside the usable band",
+      "subject": {
+        "artifact": "/tmp/claude-1000/renamecheck/out/tour/.staging-I10eVw/tour.mp4"
+      },
+      "evidence": {
+        "meanDb": -91,
+        "maxDb": -91
+      },
+      "supportedFixes": [
+        "check the narration clips mixed in",
+        "re-run the mux"
+      ]
+    },
+    {
+      "code": "internal/unclassified",
+      "severity": "warning",
+      "message": "no vision provider configured; every scene is inconclusive",
+      "subject": {},
+      "evidence": {},
+      "supportedFixes": [
+        "export ANTHROPIC_API_KEY to enable the narration check",
+        "accept inconclusive: it is reported, not hidden"
+      ]
+    }
+  ],
+  "overridden": false
+}

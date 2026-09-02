@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "baseUrl": "http://127.0.0.1:8787",
+  "allowHosts": ["127.0.0.1", "localhost"],
+  "auth": { "kind": "none" },
+  "readiness": { "quietMs": 400, "timeoutMs": 15000 },
+  "colorScheme": "dark",
+  "video": { "width": 1920, "height": 1080, "fps": 30, "bitrate": "12M" }
+}

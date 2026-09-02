@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "explainer",
+  "feature": "how a Rushes video is put together",
+
+  "opening": {
+    "kicker": "HOW IT WORKS",
+    "title": "Two registers, one video",
+    "subtitle": "Designed slides explain; the live app proves",
+    "disclaimer": "A bundled fixture application. No real data appears in this video.",
+    "narration": "A Rushes video alternates two things: designed slides that explain a concept, and the real application filmed live."
+  },
+
+  "scenes": [
+    {
+      "id": "pipeline",
+      "narration": "The pipeline has five stages. A storyboard becomes narration, the narration sets the clock, the browser is driven against the real app, the finished file is measured, and only then is anything delivered.",
+      "steps": [
+        { "do": "slide", "slide": "pipeline" },
+        { "do": "wait", "ms": 2000 }
+      ],
+      "beats": [
+        { "on": "storyboard", "do": "focus", "target": "storyboard" },
+        { "on": "narration", "do": "focus", "target": "voice" },
+        { "on": "browser", "do": "focus", "target": "record" },
+        { "on": "measured", "do": "focus", "target": "check" },
+        { "on": "delivered", "do": "highlight", "target": "deliver" }
+      ],
+      "minHoldMs": 12000
+    },
+    {
+      "id": "gate",
+      "narration": "The check is the part that is different. Three tiers of evidence, and they are never conflated: deterministic checks, automated frame evidence, and a human who actually watched it.",
+      "steps": [
+        { "do": "slide", "slide": "evidence" },
+        { "do": "wait", "ms": 2000 }
+      ],
+      "beats": [
+        { "on": "deterministic", "do": "focus", "target": "tier1" },
+        { "on": "frame", "do": "focus", "target": "tier2" },
+        { "on": "human", "do": "focus", "target": "tier3" }
+      ],
+      "minHoldMs": 10000
+    },
+    {
+      "id": "live",
+      "narration": "And this is the other register: the same video cuts to the real application, where the claim on the slide has to survive contact with the running software.",
+      "expect": [{ "text": "Entries" }],
+      "steps": [
+        { "do": "goto", "path": "/" },
+        { "do": "waitFor", "text": "Entries" },
+        { "do": "highlight", "css": "table", "ms": 2000 }
+      ]
+    }
+  ],
+
+  "closing": {
+    "title": "Point it at your app",
+    "subtitle": "rushes init, then describe the demo",
+    "narration": "Point it at your own application, describe the demo you want, and let the checker decide whether it is fit to publish."
+  }
+}

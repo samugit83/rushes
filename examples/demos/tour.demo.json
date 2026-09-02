@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "tour",
+  "feature": "the entry ledger",
+
+  "opening": {
+    "kicker": "PRODUCT DEMO",
+    "title": "Ledger in ninety seconds",
+    "subtitle": "Find an entry, open it, read it",
+    "disclaimer": "A bundled fixture application. No real data appears in this video.",
+    "narration": "This is Ledger, a small example application that ships with Rushes so a first run has something to film."
+  },
+
+  "scenes": [
+    {
+      "id": "overview",
+      "narration": "The overview opens on three counters and the entry table underneath. Everything on this screen is a real page in a real browser, not a drawing of one.",
+      "expect": [{ "text": "Entries" }, { "text": "INV-1001" }],
+      "steps": [
+        { "do": "goto", "path": "/" },
+        { "do": "waitFor", "text": "Entries" },
+        { "do": "highlight", "css": ".cards", "ms": 1600 }
+      ]
+    },
+    {
+      "id": "filter",
+      "narration": "Typing into the filter narrows the table as you go. The recording drives the real input with a human cadence, so what you see is what a person would see.",
+      "expect": [{ "text": "INV-1003" }],
+      "steps": [
+        { "do": "type", "css": "#q", "value": "operations" },
+        { "do": "click", "role": "button", "name": "Apply filter" },
+        { "do": "wait", "ms": 900 }
+      ]
+    },
+    {
+      "id": "detail",
+      "narration": "Clicking a row opens its detail panel. The scene declares what must be on screen when it ends, so a video of a page that never changed cannot be delivered.",
+      "expect": [{ "text": "Entry detail" }],
+      "steps": [
+        { "do": "click", "text": "INV-1003" },
+        { "do": "waitFor", "text": "Entry detail" },
+        { "do": "highlight", "css": "#detail", "ms": 1800 }
+      ]
+    }
+  ],
+
+  "closing": {
+    "title": "That is the whole loop",
+    "subtitle": "Storyboard, record, check, deliver",
+    "narration": "Every step resolved, every scene showed what the voice claimed, and the checker measured the finished file before anything was delivered."
+  },
+
+  "youtube": {
+    "title": "a ninety second tour",
+    "chapterLabels": { "overview": "The overview", "filter": "Filtering", "detail": "Entry detail" }
+  }
+}

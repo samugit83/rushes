@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rushes.dev/schemas/storyboard.schema.json",
+  "title": "Rushes storyboard",
+  "description": "One demo video, as data. additionalProperties is false everywhere on purpose: a misspelled key must fail loudly, not fall back to a default.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "feature", "opening", "scenes", "closing"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "feature": { "type": "string", "minLength": 1 },
+    "scope": { "type": "string" },
+    "seed": { "type": "object", "additionalProperties": { "type": "string" } },
+    "prep": { "type": "array", "items": { "$ref": "#/definitions/step" } },
+    "redact": { "type": "array", "items": { "type": "string" } },
+    "assert": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["metric", "endpoint", "jsonPath", "because"],
+        "properties": {
+          "metric": { "type": "string" },
+          "endpoint": { "type": "string" },
+          "jsonPath": { "type": "string" },
+          "min": { "type": "number" },
+          "max": { "type": "number" },
+          "because": { "type": "string" }
+        }
+      }
+    },
+    "opening": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kicker", "title", "subtitle", "disclaimer", "narration"],
+      "properties": {
+        "kicker": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "disclaimer": { "type": "string" },
+        "narration": { "type": "string", "minLength": 1 }
+      }
+    },
+    "scenes": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "narration", "steps"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+          "narration": { "type": "string", "minLength": 1 },
+          "steps": { "type": "array", "items": { "$ref": "#/definitions/step" } },
+          "expect": { "type": "array", "items": { "$ref": "#/definitions/locator" } },
+          "beats": { "type": "array", "items": { "$ref": "#/definitions/beat" } },
+          "minHoldMs": { "type": "integer", "minimum": 0 },
+          "tailPadMs": { "type": "integer", "minimum": 0 },
+          "volatile": { "type": "boolean" }
+        }
+      }
+    },
+    "closing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["title", "subtitle", "narration"],
+      "properties": {
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "narration": { "type": "string", "minLength": 1 }
+      }
+    },
+    "youtube": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "hook": { "type": "string" },
+        "chapterLabels": { "type": "object", "additionalProperties": { "type": "string" } },
+        "linkedin": { "type": "string" }
+      }
+    }
+  },
+  "definitions": {
+    "locator": {
+      "type": "object", "additionalProperties": false, "minProperties": 1,
+      "properties": {
+        "css": { "type": "string" },
+        "text": { "type": "string" },
+        "exact": { "type": "boolean" },
+        "role": { "type": "string" },
+        "name": { "type": "string" },
+        "testId": { "type": "string" },
+        "nth": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "beat": {
+      "type": "object", "additionalProperties": false,
+      "required": ["on", "do", "target"],
+      "properties": {
+        "on": { "type": "string", "minLength": 1 },
+        "occurrence": { "type": "integer", "minimum": 1 },
+        "do": { "enum": ["focus", "dim", "highlight", "spawn", "reveal", "travel"] },
+        "target": { "type": "string" }
+      }
+    },
+    "step": {
+      "type": "object", "additionalProperties": false,
+      "required": ["do"],
+      "properties": {
+        "do": {
+          "enum": ["goto", "slide", "click", "clickCanvas", "hover", "moveTo", "type",
+                   "press", "scroll", "drag", "zoom", "highlight", "waitFor", "wait"]
+        },
+        "path": { "type": "string" },
+        "external": { "type": "string", "format": "uri" },
+        "slide": { "type": "string" },
+        "keys": { "type": "string" },
+        "value": { "type": "string" },
+        "dy": { "type": "number" },
+        "dx": { "type": "number" },
+        "ms": { "type": "integer", "minimum": 0 },
+        "factor": { "type": "number", "exclusiveMinimum": 0 },
+        "strategy": { "enum": ["saturated-disc", "center", "grid-scan"] },
+        "confirm": { "$ref": "#/definitions/locator" },
+        "css": { "type": "string" },
+        "text": { "type": "string" },
+        "exact": { "type": "boolean" },
+        "role": { "type": "string" },
+        "name": { "type": "string" },
+        "testId": { "type": "string" },
+        "nth": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

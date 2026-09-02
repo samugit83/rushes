@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "pipeline",
+  "mode": "composed",
+  "block": "flow-row",
+  "kicker": "HOW IT WORKS",
+  "title": "Five stages, one gate",
+  "subtitle": "Nothing is delivered that was not measured.",
+  "intent": "the shape of the pipeline, with the check as the obvious pinch point",
+  "items": [
+    { "id": "storyboard", "label": "Storyboard", "detail": "scenes, steps, expects", "tone": "neutral" },
+    { "id": "voice",      "label": "Voice",      "detail": "sets the clock",        "tone": "frontend" },
+    { "id": "record",     "label": "Record",     "detail": "the real browser",      "tone": "backend" },
+    { "id": "check",      "label": "Check",      "detail": "the finished file",     "tone": "security" },
+    { "id": "deliver",    "label": "Deliver",    "detail": "atomic, receipted",     "tone": "database" }
+  ],
+  "connectors": [
+    { "from": "storyboard", "to": "voice",   "kind": "write" },
+    { "from": "voice",      "to": "record",  "kind": "write", "label": "the clock" },
+    { "from": "record",     "to": "check",   "kind": "write", "travel": true },
+    { "from": "check",      "to": "deliver", "kind": "write", "label": "only on pass" }
+  ],
+  "notes": "Composed, because this slide has a topology and a diagram's value is that its geometry is trustworthy. The connectors are drawn from the measured rects after layout: there are no coordinates in this file, and there is no router."
+}

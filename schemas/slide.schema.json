@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rushes.dev/schemas/slide.schema.json",
+  "title": "Rushes slide source",
+  "description": "One slide, as data. Two modes (L18): `composed` declares blocks and the compiler owns every pixel; `authored` supplies HTML and CSS and the compiler supplies the frame, the tokens, the safe area and the beat wiring. Both are first class, and both pass the same rendered-output checks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "mode": {
+      "enum": ["composed", "authored"],
+      "default": "composed",
+      "description": "composed for anything with a topology; authored where expression matters more than structure. Neither is a fallback for the other."
+    },
+    "block": {
+      "enum": ["title", "bullets", "flow-row", "sequence", "ring", "compare", "stack", "hub", "store", "badge-list", "metric", "code", "quote"],
+      "description": "composed mode only. Geometry is a pure function of the block and the number of items in it."
+    },
+    "title": { "type": "string" },
+    "subtitle": { "type": "string" },
+    "kicker": { "type": "string" },
+    "intent": {
+      "type": "string",
+      "description": "Authoring guidance in the user's own words, honoured on the next revision. Never rendered."
+    },
+    "reference": {
+      "type": "string",
+      "description": "Another slide source whose composition should be matched, so a series stays visually continuous."
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+          "label": { "type": "string" },
+          "detail": { "type": "string" },
+          "tone": {
+            "enum": ["neutral", "frontend", "backend", "database", "security", "bus", "external", "accent", "danger"],
+            "description": "A MEANING, never a decoration. Tones map to the project's extracted palette."
+          },
+          "badge": { "type": "string" },
+          "value": { "type": "string" },
+          "items": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "connectors": {
+      "type": "array",
+      "description": "Drawn as SVG paths between the MEASURED rects of two items after layout. There are no coordinates here and there is no router: each block constrains topology so there is never an obstacle to route around.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "style": { "enum": ["solid", "dashed"] },
+          "kind": { "enum": ["read", "write", "both"] },
+          "label": { "type": "string" },
+          "travel": { "type": "boolean", "description": "A dot travels the path when a beat targets this connector." }
+        }
+      }
+    },
+    "body": { "type": "string", "description": "code / quote block content." },
+    "language": { "type": "string" },
+    "attribution": { "type": "string" },
+    "html": { "type": "string", "description": "authored mode only." },
+    "css": { "type": "string", "description": "authored mode only." },
+    "notes": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "mode": { "const": "authored" } }, "required": ["mode"] },
+      "then": { "required": ["html"] },
+      "else": { "required": ["block"] }
+    }
+  ]
+}

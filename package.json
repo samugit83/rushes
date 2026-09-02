@@ -1,0 +1,26 @@
+{
+  "name": "rushes",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Point your coding agent at your web app. Get a narrated, captioned, verified demo video.",
+  "license": "MIT",
+  "bin": { "rushes": "./bin/rushes.mjs" },
+  "engines": { "node": ">=22.6.0" },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "test": "node test/run.mjs",
+    "rushes": "node bin/rushes.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "playwright": "1.62.1"
+  },
+  "optionalDependencies": {
+    "googleapis": "144.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.0",
+    "typescript": "7.0.2"
+  }
+}

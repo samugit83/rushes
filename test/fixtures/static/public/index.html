@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Ledger — a tiny fixture app</title>
+<style>
+  :root{--bg:#0f1117;--surface:#181b25;--fg:#e8e8ee;--muted:#9a9aab;--accent:#4ade80;--border:#282c39;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--fg);font:26px/1.5 system-ui,sans-serif}
+  header{display:flex;align-items:center;gap:24px;padding:32px 64px;border-bottom:1px solid var(--border)}
+  header h1{font-size:34px}
+  nav{margin-left:auto;display:flex;gap:8px}
+  nav a{color:var(--muted);text-decoration:none;padding:12px 22px;border-radius:10px}
+  nav a:hover,nav a[aria-current]{color:var(--fg);background:var(--surface)}
+  main{padding:56px 64px;display:grid;gap:40px;max-width:1720px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:34px}
+  .card .n{font-size:72px;font-weight:700;color:var(--accent)}
+  .card .l{color:var(--muted);font-size:24px;margin-top:8px}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:16px;overflow:hidden}
+  th,td{padding:24px 30px;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-size:20px;text-transform:uppercase;letter-spacing:2px}
+  input{background:var(--bg);border:1px solid var(--border);color:var(--fg);font:inherit;padding:16px 22px;border-radius:10px;width:420px}
+  button{background:var(--accent);color:#0b0d12;border:0;font:inherit;font-weight:600;padding:16px 30px;border-radius:10px;cursor:pointer}
+  #detail{display:none;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:34px}
+  #detail[data-open]{display:block}
+</style></head>
+<body>
+  <header>
+    <h1>Ledger</h1>
+    <nav><a href="#" aria-current="page">Overview</a><a href="#" id="reports">Reports</a></nav>
+  </header>
+  <main>
+    <div class="cards">
+      <div class="card"><div class="n" id="total">128</div><div class="l">Entries</div></div>
+      <div class="card"><div class="n">4</div><div class="l">Accounts</div></div>
+      <div class="card"><div class="n">2</div><div class="l">Open items</div></div>
+    </div>
+    <div><input id="q" placeholder="Filter entries" aria-label="Filter entries"> <button id="apply">Apply filter</button></div>
+    <table>
+      <thead><tr><th>Reference</th><th>Account</th><th>Amount</th></tr></thead>
+      <tbody id="rows">
+        <tr><td>INV-1001</td><td>Operations</td><td>1,240.00</td></tr>
+        <tr><td>INV-1002</td><td>Marketing</td><td>380.50</td></tr>
+        <tr><td>INV-1003</td><td>Operations</td><td>2,905.10</td></tr>
+      </tbody>
+    </table>
+    <section id="detail"><h2>Entry detail</h2><p id="detail-body">Nothing selected.</p></section>
+  </main>
+<script>
+  // A deliberate, measurable settle: the table "loads" after a tick, which is
+  // what a readiness predicate has to wait for on any framework.
+  document.getElementById('apply').addEventListener('click', () => {
+    const q = document.getElementById('q').value.toLowerCase();
+    for (const tr of document.querySelectorAll('#rows tr')) {
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    }
+  });
+  for (const tr of document.querySelectorAll('#rows tr')) {
+    tr.addEventListener('click', () => {
+      const d = document.getElementById('detail');
+      document.getElementById('detail-body').textContent = tr.children[0].textContent + ' · ' + tr.children[1].textContent;
+      d.setAttribute('data-open', '');
+    });
+  }
+</script>
+</body></html>

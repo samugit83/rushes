@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "opening",
+  "mode": "authored",
+  "kicker": "RUSHES",
+  "intent": "one enormous number, everything else recedes",
+  "html": "<div class=\"hero\"><div class=\"count\" data-node=\"count\">0</div><div class=\"cap\">frames nobody looked at, before this existed</div></div>",
+  "css": ".slide[data-slide=\"opening\"] .hero { display:grid; place-items:center; gap:var(--space-3); height:100%; }\n.slide[data-slide=\"opening\"] .count { font: 800 clamp(180px, 22vw, 380px)/1 var(--font); color: var(--accent); }\n.slide[data-slide=\"opening\"] .cap { font: 500 var(--type-subtitle) var(--font); color: var(--fg-muted); }",
+  "notes": "Authored, because this slide has no topology: it is a title moment, and no block should be bent into one. The compiler still supplies the frame, the tokens, the safe area, the preview, the golden and the beat wiring through data-node. Every rendered check applies unchanged."
+}

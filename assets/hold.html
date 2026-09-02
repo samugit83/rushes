@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><title>hold</title><style>
+*{margin:0;padding:0;}
+html,body{width:1920px;height:1080px;overflow:hidden;}
+/* Same ground as the slide deck, so a cut to or from this frame reads as
+   intentional rather than as a glitch. */
+body{background:radial-gradient(1400px 900px at 72% -12%, #241a3d, #0b0a10), #0b0a10;}
+#tick{position:absolute;right:0;bottom:0;width:4px;height:4px;}
+</style></head><body>
+<canvas id="tick" width="4" height="4"></canvas>
+<script>
+// Playwright's screencast is change-driven: it only emits a frame when the page
+// repaints. A perfectly static hold page therefore occupies far LESS time in the
+// recorded webm than it does on the wall clock, which is what let the boot page
+// leak past the driver's leadTrimMs trim and into the top of the video. This
+// repaints one near-black pixel every frame so the pre-roll costs real webm time
+// and the trim lands where the driver thinks it does. Invisible at 1080p.
+const c = document.getElementById('tick').getContext('2d');
+let i = 0;
+(function draw() {
+  c.fillStyle = (i++ % 2) ? '#0b0a10' : '#0c0b11';
+  c.fillRect(0, 0, 4, 4);
+  requestAnimationFrame(draw);
+})();
+</script>
+</body></html>

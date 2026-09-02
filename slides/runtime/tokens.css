@@ -1,0 +1,90 @@
+/* The semantic palette, the type scale and the motion budget.
+ *
+ * Two rules carry this file.
+ *
+ * L9 — every saturated colour maps to a MEANING, never to decoration. A slide's
+ * "database" is the exact colour the live application paints a database with, so
+ * a viewer who watches a concept slide and then the real UI two minutes later
+ * sees one language across both halves of the video. Nobody has to be told it is
+ * happening.
+ *
+ * P15 — these values are DERIVED from the running application by
+ * `rushes slides tokens`, which writes over the block below. What ships here is
+ * the neutral fallback, used only when extraction finds nothing usable.
+ *
+ * L15 — motion is budgeted, not left to each slide. State transitions are
+ * 140-200 ms. Authored story motion may be longer, but it must be finite,
+ * reader-paced, and it must never carry meaning that disappears in a still
+ * frame: a viewer who pauses must still be able to read the picture.
+ */
+
+:root {
+  /* --- surfaces ------------------------------------------------------- */
+  --bg: #0b0a10;
+  --surface: #151320;
+  --surface-2: #1d1a2b;
+  --border: rgba(231, 229, 234, 0.14);
+
+  /* --- text ----------------------------------------------------------- */
+  --fg: #e7e5ea;
+  --fg-muted: rgba(231, 229, 234, 0.66);
+  --fg-faint: rgba(231, 229, 234, 0.42);
+
+  /* --- semantic tones: a meaning each, never a decoration -------------- */
+  --accent: #f59e0b;
+  --tone-neutral: #8b8aa0;
+  --tone-frontend: #38bdf8;
+  --tone-backend: #a78bfa;
+  --tone-database: #34d399;
+  --tone-security: #ef4444;
+  --tone-bus: #f59e0b;
+  --tone-external: #8b8178;
+  --tone-danger: #e11d48;
+
+  /* --- type ------------------------------------------------------------ */
+  --font: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
+  /* The floor is 22px rendered: anything smaller does not survive a platform
+     transcode of a dark UI. slide_min_font enforces it. */
+  /* The two smallest steps are set by the PROJECTED floor, not by taste: a
+     slide is authored at 1920 and watched in a player that is routinely 640
+     wide, where 30px arrives as 10px and 26px arrives as 8.7px. A vocabulary
+     whose own defaults fail the house standard would make that check noise. */
+  --type-floor: 30px;
+  --type-detail: 30px;
+  --type-body: 32px;
+  --type-label: 38px;
+  --type-subtitle: 46px;
+  --type-title: 96px;
+  --type-hero: 150px;
+
+  /* --- rhythm ---------------------------------------------------------- */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 28px;
+  --space-4: 44px;
+  --space-5: 72px;
+  --radius: 18px;
+  --radius-lg: 28px;
+  --frame-pad: 96px;
+
+  /* --- motion budget (L15) --------------------------------------------- */
+  --motion-state: 170ms;   /* a state change: dim, focus, highlight */
+  --motion-enter: 420ms;   /* an element arriving */
+  --motion-travel: 1100ms; /* a packet moving along a connector */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Injected per scene by the recorder: the measured length of this slide's
+     narration. A slide can express choreography as a percentage of the voice
+     instead of in fixed seconds, which is what turns a 1.5-second entrance into
+     a build that lasts as long as the sentence does (L5). */
+  --narration: 12000ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-state: 1ms;
+    --motion-enter: 1ms;
+    --motion-travel: 1ms;
+  }
+}

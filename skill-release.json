@@ -1,0 +1,13 @@
+{
+  "skillId": "rushes",
+  "channel": "stable",
+  "version": "1.0.0",
+  "source": {
+    "repository": "https://github.com/samugit83/rushes",
+    "branch": "main"
+  },
+  "requires": {
+    "node": ">=22.6.0",
+    "binaries": ["ffmpeg", "ffprobe", "chrome|chromium"]
+  }
+}
