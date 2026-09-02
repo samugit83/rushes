@@ -7,8 +7,9 @@
 import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), 'public');
+const root = join(dirname(fileURLToPath(import.meta.url)), 'public');
 const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png' };
 
 export function serve(port = 8787) {

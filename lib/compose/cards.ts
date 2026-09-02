@@ -8,6 +8,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
 import { VIDEO, TIMING } from '../config.ts';
 import { demoPaths } from '../paths.ts';
 import { screenshotHtml } from '../chrome.ts';
@@ -77,8 +78,8 @@ export function renderCardClip(opts: {
   html: string; id: string; name: 'intro' | 'outro'; audioPath: string; durationMs: number; config: ProjectConfig;
 }): string {
   const P = demoPaths(opts.id);
-  const htmlPath = `${P.dir}/${opts.name}.html`;
-  const pngPath = `${P.dir}/${opts.name}.png`;
+  const htmlPath = join(P.dir, `${opts.name}.html`);
+  const pngPath = join(P.dir, `${opts.name}.png`);
   const mp4Path = opts.name === 'intro' ? P.introMp4 : P.outroMp4;
   const width = opts.config.video?.width ?? VIDEO.width;
   const height = opts.config.video?.height ?? VIDEO.height;

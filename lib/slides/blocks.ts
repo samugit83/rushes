@@ -117,6 +117,23 @@ export function renderBlock(slide: SlideSource): string {
         ${slide.attribution ? `<div class="who">${esc(slide.attribution)}</div>` : ''}
       </div>`;
 
+    case 'layers': {
+      // Horizontal lanes, each a titled layer/group. Items sit in a row per lane;
+      // connectors are measured and drawn between any nodes, exactly like every
+      // other composed block. Geometry is (lane, order) — still no coordinates.
+      const lanes = slide.lanes ?? [];
+      let idx = 0;
+      const laneHtml = lanes.map((lane, li) => {
+        const toneVar = lane.tone ? ` style="--tone:${TONE_VAR[lane.tone]}"` : '';
+        const boxes = (lane.items ?? []).map((it) => boxHtml(it, idx++)).join('');
+        return `<div class="lane" data-lane="${esc(lane.id ?? `lane-${li + 1}`)}"${toneVar}>
+          <div class="lane-label">${esc(lane.label ?? '')}</div>
+          <div class="lane-row">${boxes}</div>
+        </div>`;
+      }).join('');
+      return `<div class="block-layers">${laneHtml}</div>`;
+    }
+
     default:
       return `<div class="block-title"><div class="headline">${esc(slide.title)}</div></div>`;
   }
@@ -133,6 +150,7 @@ export function renderBlock(slide: SlideSource): string {
 export function itemCount(slide: SlideSource): number {
   const block = slide.block as BlockKind;
   if (block === 'code' || block === 'quote' || block === 'title') return 1;
+  if (block === 'layers') return (slide.lanes ?? []).reduce((n, l) => n + (l.items?.length ?? 0), 0);
   const items = slide.items ?? [];
   if (block === 'sequence') {
     const participants = items.filter((it) => !it.value).length;

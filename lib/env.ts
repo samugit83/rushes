@@ -9,8 +9,9 @@
 
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export const SKILL_ROOT = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
+export const SKILL_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** The complete allowlist of keys the skill's own .env may carry (X2 / config/env-leak). */
 export const ENV_ALLOWLIST = ['ELEVENLABS_API_KEY', 'ELEVENLABS_VOICE_ID'] as const;

@@ -10,8 +10,9 @@ import { test, assert } from './harness.mjs';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const readme = readFileSync(join(root, 'README.md'), 'utf8');
 
 await test('the generated README blocks match the code', () => {

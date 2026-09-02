@@ -11,8 +11,9 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const README = join(root, 'README.md');
 const check = process.argv.includes('--check');
 

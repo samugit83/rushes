@@ -7,13 +7,42 @@
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { existsSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { IS_MAC, IS_WINDOWS, which } from './platform.ts';
 
-export const CHROME_CANDIDATES = [
-  'google-chrome',
-  'google-chrome-stable',
-  'chromium',
-  'chromium-browser',
-] as const;
+/**
+ * Names to look for on PATH, per platform.
+ *
+ * These were Linux binary names only, which is wrong twice. On macOS Chrome
+ * installs into an application bundle and is never on PATH, so the lookup always
+ * missed and the stated intent — "someone who installed Chrome deliberately
+ * should get the one they chose" — silently never applied. On Windows none of
+ * them exists at all.
+ */
+export const CHROME_CANDIDATES: readonly string[] = IS_WINDOWS
+  ? ['chrome', 'chrome.exe', 'msedge']
+  : IS_MAC
+    ? ['google-chrome', 'chromium']
+    : ['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser'];
+
+/**
+ * Absolute locations a platform installs a browser to without putting it on
+ * PATH. Checked after PATH and before the engine's bundled build.
+ */
+const CHROME_INSTALL_PATHS: readonly string[] = IS_MAC
+  ? [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    ]
+  : IS_WINDOWS
+    ? [
+        `${process.env['PROGRAMFILES'] ?? 'C:\\Program Files'}\\Google\\Chrome\\Application\\chrome.exe`,
+        `${process.env['PROGRAMFILES(X86)'] ?? 'C:\\Program Files (x86)'}\\Google\\Chrome\\Application\\chrome.exe`,
+        `${process.env['LOCALAPPDATA'] ?? ''}\\Google\\Chrome\\Application\\chrome.exe`,
+        `${process.env['PROGRAMFILES'] ?? 'C:\\Program Files'}\\Microsoft\\Edge\\Application\\msedge.exe`,
+      ].filter((p) => !p.startsWith('\\'))
+    : [];
 
 let cached: string | null | undefined;
 
@@ -52,7 +81,13 @@ function bundledChromium(): string | null {
 export function findChrome(): string | null {
   if (cached !== undefined) return cached;
   for (const c of CHROME_CANDIDATES) {
-    try { execFileSync('which', [c], { stdio: 'ignore' }); cached = c; return cached; } catch { /* next */ }
+    const found = which(c);
+    if (found) { cached = found; return cached; }
+  }
+  // Installed, but not on PATH. This is the NORMAL case on macOS and Windows,
+  // where a browser lives in an application bundle or under Program Files.
+  for (const p of CHROME_INSTALL_PATHS) {
+    if (existsSync(p)) { cached = p; return cached; }
   }
   cached = bundledChromium();
   return cached;
@@ -74,12 +109,19 @@ export function chromeBin(): string {
   return bin;
 }
 
-/** Render an HTML file to a PNG at an exact pixel size. */
+/**
+ * Render an HTML file to a PNG at an exact pixel size.
+ *
+ * The source URL is built with `pathToFileURL`, not by concatenating `file://`
+ * onto a path. Concatenation is wrong on Windows in two ways at once — the
+ * separators are backslashes and the drive letter needs a third slash — and it
+ * is wrong everywhere for a path containing a character a URL must escape.
+ */
 export function screenshotHtml(htmlPath: string, pngPath: string, width: number, height: number): void {
   execFileSync(chromeBin(), [
     '--headless=new', '--disable-gpu', '--no-sandbox', '--hide-scrollbars',
     '--force-device-scale-factor=1', `--window-size=${width},${height}`,
     '--virtual-time-budget=4000',
-    `--screenshot=${pngPath}`, `file://${htmlPath}`,
-  ], { stdio: 'ignore' });
+    `--screenshot=${pngPath}`, pathToFileURL(htmlPath).href,
+  ], { stdio: 'ignore', windowsHide: true });
 }

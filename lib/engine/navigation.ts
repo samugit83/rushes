@@ -33,6 +33,7 @@ import { type Diagnostic, diag } from '../diagnostics.ts';
 import { classifyHost, hostAllowed, LOCAL_APP_POLICY, STRICT_POLICY } from '../egress.ts';
 import type { ProjectConfig } from '../projectConfig.ts';
 import { slidePaths } from '../paths.ts';
+import { CASE_INSENSITIVE_FS } from '../platform.ts';
 
 export type Destination =
   | { kind: 'app'; url: string; host: string }
@@ -53,11 +54,19 @@ export function isAbsoluteUrl(s: string): boolean { return SCHEME.test(s); }
 /**
  * Is `candidate` inside `root` after both are fully resolved? Symlinks are
  * resolved first, so a link inside the slide directory cannot point out of it.
+ *
+ * The comparison follows the FILESYSTEM's own rule about case. On Linux paths
+ * are case-sensitive and so is this. On macOS and Windows the default
+ * filesystems are not, so `C:\Slides\deck.html` and `C:\slides\deck.html` are
+ * one file — comparing them case-sensitively there does not tighten the
+ * boundary, it just refuses a path that is genuinely inside it. Matching the
+ * filesystem is what makes the check mean what it says on all three.
  */
 export function withinDirectory(candidate: string, root: string): boolean {
   const real = (p: string) => { try { return realpathSync(p); } catch { return resolve(p); } };
-  const c = real(resolve(candidate));
-  const r = real(resolve(root));
+  const fold = (p: string) => (CASE_INSENSITIVE_FS ? p.toLowerCase() : p);
+  const c = fold(real(resolve(candidate)));
+  const r = fold(real(resolve(root)));
   return c === r || c.startsWith(r.endsWith(sep) ? r : r + sep);
 }
 

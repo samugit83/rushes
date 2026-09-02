@@ -17,7 +17,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, isAbsolute, join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { freemem } from 'node:os';
+import { availableMemoryMb, detachedSpawnOptions, killTree, platformLabel, totalMemoryMb, treeIsGone } from '../platform.ts';
 import type { RunnerConfig } from '../projectConfig.ts';
 import { projectRoot, statePaths } from '../paths.ts';
 import { THRESHOLDS } from '../config.ts';
@@ -99,14 +99,18 @@ export async function startApp(
   if (refusal) return { diagnostics: [refusal], async stop() { /* nothing started */ } };
 
   const cwd = isAbsolute(runner.cwd ?? '.') ? runner.cwd! : join(projectRoot(), runner.cwd ?? '.');
-  // `detached` puts the command in its OWN PROCESS GROUP, which is the only way
-  // to stop it again. The command runs through a shell, so the child is
-  // `/bin/sh -c "..."` and the actual server is its grandchild: signalling the
-  // child killed the shell and left the server reparented and holding the port.
-  // A later run then binds nothing, or films a stale instance of the app from a
-  // previous checkout with nothing saying so.
+  // The command runs through a shell, so the child is `/bin/sh -c "..."` (or
+  // `cmd.exe /c "..."`) and the actual server is its GRANDCHILD: signalling the
+  // child alone kills the shell and leaves the server reparented and holding the
+  // port. A later run then binds nothing, or films a stale instance of the app
+  // from a previous checkout with nothing saying so.
+  //
+  // On POSIX the answer is a process group, which is what `detached` creates.
+  // Windows has no process groups, so `detachedSpawnOptions` does not ask for
+  // one there and `killTree` walks the tree by parent id instead. Both express
+  // the same intent in the only vocabulary each platform has.
   const child: ChildProcess = spawn(runner.start, {
-    cwd, shell: true, detached: true, stdio: ['ignore', 'pipe', 'pipe'],
+    cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'], ...detachedSpawnOptions(),
   });
   let log = '';
   child.stdout?.on('data', (b: Buffer) => { log += b.toString(); });
@@ -138,17 +142,14 @@ export async function startApp(
     if (runner.stopAfter === false) return;
     const pid = child.pid;
     if (pid == null) return;
-    // Negative pid signals the whole group: the shell AND whatever it started.
-    const signalGroup = (sig: NodeJS.Signals) => {
-      try { process.kill(-pid, sig); } catch { /* already gone */ }
-    };
-    signalGroup('SIGTERM');
+    // The whole tree: the shell AND whatever it started.
+    killTree(pid, false);
     for (let i = 0; i < 16 && child.exitCode === null; i++) {
       await new Promise((r) => setTimeout(r, 100));
     }
-    if (child.exitCode === null) signalGroup('SIGKILL');
-    // Never leave a group alive because the leader happened to exit first.
-    try { process.kill(-pid, 0); signalGroup('SIGKILL'); } catch { /* the group is gone */ }
+    if (child.exitCode === null) killTree(pid, true);
+    // Never leave a tree alive because the leader happened to exit first.
+    if (!treeIsGone(pid)) killTree(pid, true);
   };
 
   if (!isReady) {
@@ -174,14 +175,19 @@ export async function startApp(
  * a defect in the video.
  */
 export function memoryFloorDiagnostic(floorMb = THRESHOLDS.freeMemoryFloorMb): Diagnostic | null {
-  const freeMb = Math.round(freemem() / 1e6);
+  // AVAILABLE, not free. `os.freemem()` means different things on different
+  // kernels, and on macOS it counts only genuinely free pages — so a 32 GB Mac
+  // under ordinary use reported a few hundred megabytes and this floor refused
+  // to record on a machine with tens of gigabytes to spare. See
+  // `availableMemoryMb` for what each platform is actually asked.
+  const freeMb = availableMemoryMb();
   if (freeMb >= floorMb) return null;
   return diag('runner/insufficient-memory', 'error',
-    `${freeMb} MB free, below the ${floorMb} MB floor for a 1080p recording`,
-    {}, { freeMb, floorMb },
+    `${freeMb} MB available, below the ${floorMb} MB floor for a 1080p recording`,
+    {}, { availableMb: freeMb, totalMb: totalMemoryMb(), floorMb, platform: platformLabel() },
     ['close what else is running', 'record at a lower resolution',
      'pass --allow-low-memory to record anyway and accept dropped frames']);
 }
 
 /** Used by `doctor` and by `build`'s pre-flight report. */
-export function freeMemoryMb(): number { return Math.round(freemem() / 1e6); }
+export function freeMemoryMb(): number { return availableMemoryMb(); }

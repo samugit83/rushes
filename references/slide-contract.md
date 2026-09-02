@@ -5,18 +5,28 @@ live application filmed driving itself. This is the first register.
 
 ## Two modes, both first class
 
-**`composed`** — the default for anything structural. Diagrams, flows,
-sequences, rings, comparisons, anything with connectors. JSON blocks, no CSS, no
-coordinates. This is where a diagram belongs, because a diagram's value is that
-its geometry is trustworthy.
+**`composed`** — the default, and where every slide starts. Fourteen blocks,
+declared as JSON: no HTML, no CSS, no coordinates. They come in two families.
 
-**`authored`** — full HTML and CSS, written by you. For slides where expression
-matters more than structure: a title moment, a statistic reveal, a quote, a
-bespoke visual no block should be bent into.
+- **Seven carry a topology** and accept `connectors`: `flow-row`, `sequence`,
+  `ring`, `hub`, `stack`, `compare`, `layers`. This is where a diagram belongs,
+  because a diagram's value is that its geometry is trustworthy.
+- **Seven carry content** and take no connectors: `title`, `bullets`, `code`,
+  `quote`, `metric`, `badge-list`, `store`.
 
-**Choose `composed` when the slide has a topology and `authored` when it does
-not. Neither is a fallback for the other.** State the mode at Gate 2 so a wrong
-call is caught before anything is built.
+**A slide with no topology is still `composed`.** A bullet list, a pull quote, a
+code sample and a row of numbers are blocks, not hand-written HTML.
+
+**`authored`** — full HTML and CSS, written by you. For the slide no block
+makes: a bespoke visual moment, or motion no block has — a value counting up
+from zero rather than a `metric`'s static number.
+
+**Start from `composed`. Reach for `authored` only when you can name the block
+you would otherwise use and say what it cannot do.** Neither is a fallback for
+the other, and `authored` is never the way around a capacity limit or a layout
+you could not get right: a `compare` with four columns is two slides or a
+different block, not hand-written HTML. State the mode at Gate 2 so a wrong call
+is caught before anything is built.
 
 ## What is enforced, in both modes
 
@@ -105,7 +115,16 @@ turns it off.
 ## Composed: the block vocabulary
 
 `title` · `bullets` · `flow-row` · `sequence` · `ring` · `compare` · `stack` ·
-`hub` · `store` · `badge-list` · `metric` · `code` · `quote`
+`hub` · `layers` · `store` · `badge-list` · `metric` · `code` · `quote`
+
+`layers` is the block for a genuinely multi-layer diagram: horizontal **lanes**,
+each a titled layer/group, each holding a row of nodes, declared in `lanes`
+rather than `items`. Connectors flow between any nodes and route **orthogonally
+through the lane gaps**, so a cross-lane edge never cuts a box. Two rules keep it
+clean, both the same as everywhere else: connect **adjacent** nodes within a lane
+(a skip crosses the node between), and prefer **adjacent lanes** (a connector
+that skips a lane crosses it). Its cap is a whole-slide one — 18 nodes across
+every lane — because that is what the glance budget actually spends.
 
 ```jsonc
 {
@@ -142,6 +161,7 @@ of items in it.
 | `compare` | 2 or 3 equal columns |
 | `stack` | N full-width rows |
 | `hub` | one centre, N satellites at even angles |
+| `layers` | one titled lane per entry, its items in a row; routes use the lane gaps |
 | `store` | a cylinder, sized to its label |
 | the rest | flow layout, no connectors |
 
@@ -232,13 +252,18 @@ still frame: someone who pauses must still be able to read the picture.
 
 ```bash
 rushes slides build                    # sources -> one hash-routed deck
-rushes slides preview <id>             # every slide as a PNG + a contact sheet
+rushes slides preview <id>             # a PNG per slide, a gif per animated slide, + a contact sheet
 rushes slides check                    # the measured checks + verified repairs
 rushes slides build --update-golden    # re-pin the reference frames, deliberately
 rushes slides tokens                   # derive the palette from the running app
 ```
 
-`preview` needs no voice, no recording and no ffmpeg. Seconds, and no spend.
+`preview` needs no voice and no recording. Every slide is rendered as a still;
+any slide that actually moves — a composed slide with connectors, or any slide
+the storyboard fires beats on — is also captured as a short gif, so the motion is
+reviewed rather than discovered in the finished video. The contact sheet prefers
+the gif where one exists. Gifs need ffmpeg and degrade to "no gif" without it,
+never to a false pass; `--no-gif` skips them. Seconds, and no spend.
 **Show it at Gate 2.5 and let the user direct the design in words, against a
 picture.** They say "make slide 2 a flow, not bullets" or "too dense"; you map
 words to blocks. A user never names a CSS property and never names a block

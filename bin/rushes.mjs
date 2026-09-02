@@ -5,12 +5,12 @@
 // Node strips the types in lib/*.ts at load time (>= 22.6), which is why there is
 // no build step and no compiled artifact to keep in sync with the source.
 
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const here = dirname(decodeURIComponent(new URL(import.meta.url).pathname));
+const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
 const lib = (p) => pathToFileURL(join(root, 'lib', p)).href;
 
@@ -30,8 +30,11 @@ if (major < 22) {
 // operator's behalf.
 if (!existsSync(join(root, 'node_modules', 'ajv'))) {
   process.stderr.write('  first run: installing the skill\'s own dependencies, once\n');
+  // On Windows npm is `npm.cmd`, and spawning it without a shell fails with
+  // ENOENT — which made the very first command a Windows user typed die on a
+  // missing package. `shell: true` resolves the platform's own launcher.
   const npm = spawnSync('npm', ['install', '--omit=dev', '--no-audit', '--no-fund', '--loglevel=error'],
-    { cwd: root, stdio: 'inherit' });
+    { cwd: root, stdio: 'inherit', shell: process.platform === 'win32', windowsHide: true });
   if (npm.status !== 0 || !existsSync(join(root, 'node_modules', 'ajv'))) {
     process.stderr.write(
       `\ncould not install the skill's dependencies automatically.\nRun this once, by hand:\n\n  cd ${root} && npm install --omit=dev\n\n`);

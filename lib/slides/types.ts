@@ -4,7 +4,8 @@ export type SlideMode = 'composed' | 'authored';
 
 export type BlockKind =
   | 'title' | 'bullets' | 'flow-row' | 'sequence' | 'ring' | 'compare'
-  | 'stack' | 'hub' | 'store' | 'badge-list' | 'metric' | 'code' | 'quote';
+  | 'stack' | 'hub' | 'store' | 'badge-list' | 'metric' | 'code' | 'quote'
+  | 'layers';
 
 export type Tone =
   | 'neutral' | 'frontend' | 'backend' | 'database' | 'security'
@@ -18,6 +19,13 @@ export interface SlideItem {
   badge?: string;
   value?: string;
   items?: string[];
+}
+
+export interface Lane {
+  id?: string;
+  label?: string;
+  tone?: Tone;
+  items: SlideItem[];
 }
 
 export interface Connector {
@@ -40,6 +48,7 @@ export interface SlideSource {
   intent?: string;
   reference?: string;
   items?: SlideItem[];
+  lanes?: Lane[];
   connectors?: Connector[];
   body?: string;
   language?: string;
@@ -56,22 +65,26 @@ export interface SlideSource {
  */
 export const CAPACITY: Record<BlockKind, number> = {
   title: 1,
-  bullets: 6,
-  'flow-row': 8,
-  sequence: 8,
+  bullets: 8,
+  'flow-row': 10,
+  sequence: 10,
   ring: 4,
-  compare: 3,
-  stack: 6,
-  hub: 8,
-  store: 3,
-  'badge-list': 12,
-  metric: 3,
+  compare: 4,
+  stack: 8,
+  hub: 10,
+  store: 4,
+  'badge-list': 14,
+  metric: 4,
   code: 1,
   quote: 1,
+  // A lane diagram: geometry is (lane, order). Its cap is a whole-slide one —
+  // total nodes across every lane — because that is what the glance budget
+  // actually spends.
+  layers: 18,
 };
 
 /** Blocks whose whole point is a topology. Used by the mode-mismatch warning. */
-export const STRUCTURAL: BlockKind[] = ['flow-row', 'sequence', 'ring', 'compare', 'stack', 'hub'];
+export const STRUCTURAL: BlockKind[] = ['flow-row', 'sequence', 'ring', 'compare', 'stack', 'hub', 'layers'];
 
 export const TONE_VAR: Record<Tone, string> = {
   neutral: 'var(--tone-neutral)',

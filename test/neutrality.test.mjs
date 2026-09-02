@@ -13,9 +13,10 @@
 
 import { test, assert, equal } from './harness.mjs';
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
-import { join, dirname, extname } from 'node:path';
+import { join, dirname, extname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Every product-specific identifier that must never appear in the engine. */
 const FORBIDDEN = [
@@ -58,7 +59,7 @@ await test('no product-specific identifier appears in lib/, bin/ or schemas/', (
     const text = readFileSync(f, 'utf8');
     for (const term of FORBIDDEN) {
       if (text.toLowerCase().includes(term.toLowerCase())) {
-        hits.push(`${f.replace(root + '/', '')}: "${term}"`);
+        hits.push(`${relative(root, f)}: "${term}"`);
       }
     }
   }

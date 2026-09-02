@@ -3,6 +3,7 @@
 // clean neutral card rather than someone else's logo.
 
 import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { demoPaths } from '../paths.ts';
 import { screenshotHtml } from '../chrome.ts';
 import { resolveBrand, embeddedFontCss, escapeHtml, FONT_STACK } from '../compose/brand.ts';
@@ -54,8 +55,8 @@ export function thumbnailHtml(story: Storyboard, config: ProjectConfig): string 
 
 export function renderThumbnail(story: Storyboard, config: ProjectConfig, dir?: string): string {
   const P = demoPaths(story.id);
-  const html = dir ? `${dir}/${story.id}.thumb.html` : P.thumbHtml;
-  const png = dir ? `${dir}/${story.id}.thumb.png` : P.thumbPng;
+  const html = dir ? join(dir, `${story.id}.thumb.html`) : P.thumbHtml;
+  const png = dir ? join(dir, `${story.id}.thumb.png`) : P.thumbPng;
   writeFileSync(html, thumbnailHtml(story, config));
   screenshotHtml(html, png, W, H);
   return png;

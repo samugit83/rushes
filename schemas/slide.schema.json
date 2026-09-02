@@ -5,22 +5,53 @@
   "description": "One slide, as data. Two modes (L18): `composed` declares blocks and the compiler owns every pixel; `authored` supplies HTML and CSS and the compiler supplies the frame, the tokens, the safe area and the beat wiring. Both are first class, and both pass the same rendered-output checks.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id"],
+  "required": [
+    "id"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
     "mode": {
-      "enum": ["composed", "authored"],
+      "enum": [
+        "composed",
+        "authored"
+      ],
       "default": "composed",
       "description": "composed for anything with a topology; authored where expression matters more than structure. Neither is a fallback for the other."
     },
     "block": {
-      "enum": ["title", "bullets", "flow-row", "sequence", "ring", "compare", "stack", "hub", "store", "badge-list", "metric", "code", "quote"],
+      "enum": [
+        "title",
+        "bullets",
+        "flow-row",
+        "sequence",
+        "ring",
+        "compare",
+        "stack",
+        "hub",
+        "store",
+        "badge-list",
+        "metric",
+        "code",
+        "quote",
+        "layers"
+      ],
       "description": "composed mode only. Geometry is a pure function of the block and the number of items in it."
     },
-    "title": { "type": "string" },
-    "subtitle": { "type": "string" },
-    "kicker": { "type": "string" },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "kicker": {
+      "type": "string"
+    },
     "intent": {
       "type": "string",
       "description": "Authoring guidance in the user's own words, honoured on the next revision. Never rendered."
@@ -35,16 +66,42 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
-          "label": { "type": "string" },
-          "detail": { "type": "string" },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
           "tone": {
-            "enum": ["neutral", "frontend", "backend", "database", "security", "bus", "external", "accent", "danger"],
+            "enum": [
+              "neutral",
+              "frontend",
+              "backend",
+              "database",
+              "security",
+              "bus",
+              "external",
+              "accent",
+              "danger"
+            ],
             "description": "A MEANING, never a decoration. Tones map to the project's extracted palette."
           },
-          "badge": { "type": "string" },
-          "value": { "type": "string" },
-          "items": { "type": "array", "items": { "type": "string" } }
+          "badge": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -54,29 +111,160 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["from", "to"],
+        "required": [
+          "from",
+          "to"
+        ],
         "properties": {
-          "from": { "type": "string" },
-          "to": { "type": "string" },
-          "style": { "enum": ["solid", "dashed"] },
-          "kind": { "enum": ["read", "write", "both"] },
-          "label": { "type": "string" },
-          "travel": { "type": "boolean", "description": "A dot travels the path when a beat targets this connector." }
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "style": {
+            "enum": [
+              "solid",
+              "dashed"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "read",
+              "write",
+              "both"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "travel": {
+            "type": "boolean",
+            "description": "A dot travels the path when a beat targets this connector."
+          }
         }
       }
     },
-    "body": { "type": "string", "description": "code / quote block content." },
-    "language": { "type": "string" },
-    "attribution": { "type": "string" },
-    "html": { "type": "string", "description": "authored mode only." },
-    "css": { "type": "string", "description": "authored mode only." },
-    "notes": { "type": "string" }
+    "body": {
+      "type": "string",
+      "description": "code / quote block content."
+    },
+    "language": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "html": {
+      "type": "string",
+      "description": "authored mode only."
+    },
+    "css": {
+      "type": "string",
+      "description": "authored mode only."
+    },
+    "notes": {
+      "type": "string"
+    },
+    "lanes": {
+      "type": "array",
+      "description": "For the `layers` block: horizontal lanes, each a titled layer/group of nodes placed left to right. Connectors flow between any nodes across lanes.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tone": {
+            "enum": [
+              "neutral",
+              "frontend",
+              "backend",
+              "database",
+              "security",
+              "bus",
+              "external",
+              "accent",
+              "danger"
+            ],
+            "description": "A MEANING, never a decoration. Tones map to the project's extracted palette."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "tone": {
+                  "enum": [
+                    "neutral",
+                    "frontend",
+                    "backend",
+                    "database",
+                    "security",
+                    "bus",
+                    "external",
+                    "accent",
+                    "danger"
+                  ],
+                  "description": "A MEANING, never a decoration. Tones map to the project's extracted palette."
+                },
+                "badge": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "mode": { "const": "authored" } }, "required": ["mode"] },
-      "then": { "required": ["html"] },
-      "else": { "required": ["block"] }
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "authored"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "required": [
+          "html"
+        ]
+      },
+      "else": {
+        "required": [
+          "block"
+        ]
+      }
     }
   ]
 }

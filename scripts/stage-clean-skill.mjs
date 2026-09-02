@@ -14,8 +14,9 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, copyFileSync, rmSync, existsSync, lstatSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const stage = process.argv[2] ?? join(root, 'dist', 'skill');
 
 // Excluded from the payload even though they are tracked. The lockfile pins the

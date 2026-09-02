@@ -15,7 +15,7 @@
 import { chromium } from 'playwright';
 import { createInterface } from 'node:readline/promises';
 import { loadConfig } from '../projectConfig.ts';
-import { statePathOf, writeState } from '../auth/index.ts';
+import { statePathOf, writeState, stateProtection } from '../auth/index.ts';
 import { VIDEO } from '../config.ts';
 
 export async function login(): Promise<number> {
@@ -39,7 +39,7 @@ export async function login(): Promise<number> {
   await context.close();
   await browser.close();
 
-  process.stderr.write(`\n✓ saved ${path} (mode 0600)\n`);
+  process.stderr.write(`\n✓ saved ${path} (${stateProtection()})\n`);
   process.stderr.write('  It expires: rushes refuses to record on a stale state rather than filming a logged-out app.\n');
   process.stderr.write('  Add it to .gitignore if it is not already.\n\n');
   return 0;

@@ -147,6 +147,65 @@ Type this into the chat. That sentence is what starts everything:
 
 > make a demo video showing how the reports page works
 
+That is genuinely enough — the agent asks what it needs and discovers the rest by
+looking at your app.
+
+#### Or direct it, scene by scene
+
+When you already know the story you want to tell, say so. Nothing below is a
+special syntax; it is a paragraph, and every line of it maps onto something the
+tool actually does.
+
+```text
+make a demo video of our app. here is the shape I want:
+
+1. open with a slide that introduces the product: the name, one line on what
+   it is for, and four boxes for the pieces a new user meets first -
+   projects, reports, exports, alerts. keep it calm and let the voice carry
+   the detail.
+
+2. then film the real app. start on the dashboard, walk through the filters
+   panel, then the saved views on the right, and then actually create a new
+   project called "Q3 rollout" and land on its empty state.
+
+3. after that, a slide with an animated diagram of how the thing is put
+   together. read the code in ./services and ./web to work out the real
+   architecture - do not guess it - then draw it and narrate the path a
+   request takes, lighting up each box as you name it.
+
+4. back into the app: open the reports page, filter to last month, sort by
+   owner, and export a CSV so the download lands on screen.
+
+5. then visit https://docs.example.com/reports/exports, read it, and narrate
+   what the export limits actually are, in your own words.
+
+6. then open the alerts section. I genuinely do not know what is worth
+   showing there - explore it yourself, find two things a developer
+   evaluating us would care about, do them, and explain them.
+
+7. close on a slide: one sentence on who this is for, and where to start.
+
+about four minutes, for a developer evaluating us.
+```
+
+#### What each of those turns into
+
+| What you asked for | What Rushes does with it |
+|---|---|
+| **1.** an intro slide | a `composed` slide using the `flow-row` block. The palette and typeface are extracted from your running app, so it does not arrive looking like a stock template. Every slide is measured after rendering: text below the size floor, contrast under 4.5:1, anything outside the frame, and text too small once projected into a 640px player all fail |
+| **2.** navigate, interact, create | live scenes driven by visible text and ARIA roles rather than CSS classes, so they survive a refactor. The create step gets an `expect` on the empty state — a video of a form that never submitted cannot be delivered |
+| **3.** a diagram from the real code | the agent reads the folders you named and drafts a slide with a **topology**, not a picture. Connectors are drawn after layout from the measured boxes and then checked: a route through a box it does not connect is a hard failure at every profile |
+| **3.** "lighting up each box as you name it" | slide **beats**, anchored to a *word* in the narration. The voice provider returns character-level timings, so `focus`, `reveal` and `travel` fire on the word — and a reworded sentence, or a different voice, re-syncs every beat with no edit. A beat that never fired is a failed check, not something you notice on the fourth viewing |
+| **4.** filter, sort, export | more live scenes. If the narration says a number, bind it with an `assert` and it is checked against live data before recording — a figure that was true when you wrote it and false when it filmed is the failure that cannot be fixed after upload |
+| **5.** read an external page | an off-origin visit. The host must be listed in `external.allow`, it is filmed from a **fresh browser context that never held your credentials**, only a picture crosses back, and the source URL stays on screen. Mark the scene `volatile`: someone else's page rotates its content, and the rehearsal must not demand it be identical twice |
+| **6.** "explore it yourself" | `rushes discover` walks the section and drafts scenes whose `expect`s are pre-filled from elements it actually saw. It is a proposal, never a recording — you approve the outline at Gate 2 first |
+| **7.** a closing slide | a final slide scene plus the outro card, both on the same palette |
+| **"about four minutes"** | scene pacing, and the advisory score sheet afterwards: mean scene length, motion share, reading rate, dead air |
+
+You still get the five questions, and it still stops at the four gates. A longer
+prompt changes the storyboard — never the checks, and never what may be published
+without your say-so.
+
 ### Step 6. Answer five questions
 
 The agent asks all five at once, then does the work. Here is a real exchange:
@@ -241,8 +300,9 @@ Claude GATE 3 - done. 21/21 showcase, 0 errors, 1 warning.
 Your video is in your project, under `out/<demo-id>/`:
 
 ```bash
-xdg-open out/reports-tour/reports-tour.mp4     # Linux
-open out/reports-tour/reports-tour.mp4         # macOS
+xdg-open out/reports-tour/reports-tour.mp4        # Linux
+open     out/reports-tour/reports-tour.mp4        # macOS
+start "" out\reports-tour\reports-tour.mp4        # Windows
 ```
 
 What is in that folder:
@@ -681,11 +741,79 @@ publicly, so the constraints are stated out loud rather than assumed.
 
 Full model: [`SECURITY.md`](SECURITY.md).
 
+## Which operating systems it runs on
+
+**Linux, macOS and Windows.** Same pipeline, same checks, same output on all
+three. Node 22.6 or newer is the only hard requirement, plus ffmpeg and a
+browser — and `rushes setup` handles the browser and prints the one command for
+ffmpeg on the package manager you actually have.
+
+| | Linux | macOS | Windows |
+|---|---|---|---|
+| record, check, deliver | yes | yes | yes |
+| arm64 browser build, from the engine | yes | yes (Apple Silicon) | not shipped |
+| install ffmpeg with | `apt` `dnf` `pacman` `zypper` `apk` | `brew` | `winget` `choco` `scoop` |
+| where the browser is found | PATH, then the engine's own | PATH, `/Applications`, then the engine's own | PATH, Program Files, then the engine's own |
+| stopping an app started by `runner` | process group | process group | `taskkill /T` on the process tree |
+| the saved login state (`.rushes/state.json`) | mode `0600` | mode `0600` | the folder's ACL — see below |
+
+Run `rushes doctor` first on any machine. Its first line names the platform, and
+every row tells you what is missing and the exact command that fixes it.
+
+### If you are on macOS
+
+- **Nothing will ask for Screen Recording permission**, and it should not. The
+  browser is captured page-side, not off your display, so macOS never sees a
+  screen capture. Your other windows, notifications and menu bar can never end
+  up in the video.
+- **Chrome is found automatically in `/Applications`**, even though it is not on
+  your PATH. If you have none, `rushes setup` fetches a browser into a cache in
+  your home directory.
+- **ffmpeg is the one thing you install yourself**: `brew install ffmpeg`.
+  Homebrew writes into a prefix you own, so no `sudo` is involved.
+- The "not enough memory" refusal counts memory macOS will actually hand back,
+  not just the free-page number — which is a few hundred megabytes on a healthy
+  Mac and would otherwise refuse to record on a machine with plenty to spare.
+
+### If you are on Windows
+
+- **PowerShell or Command Prompt both work.** Nothing needs WSL, though WSL2
+  works too and behaves exactly like Linux.
+- **ffmpeg must be on your PATH.** `winget install --id Gyan.FFmpeg -e` is the
+  usual route; `choco` and `scoop` are recognised too. Open a new terminal
+  afterwards so the PATH change is picked up, then re-run `rushes doctor`.
+- **Chrome or Edge is found automatically** under Program Files. Otherwise
+  `rushes setup` fetches one.
+- **`runner.start` is your command, not ours.** Rushes starts it and stops its
+  whole process tree, but the command string itself has to be one your shell
+  understands — write it for Windows, or skip the `runner` block and start the
+  app in another terminal yourself.
+- **The saved login state cannot be locked down the way it is elsewhere.**
+  Windows has no POSIX permission bits, so `.rushes/state.json` inherits the
+  folder's ACL instead of being `0600`. It is a bearer credential: anyone
+  holding it is signed in as you. On a shared machine, restrict the `.rushes`
+  folder — and on every machine, add `.rushes/` to your `.gitignore`, which is
+  what `rushes login` reminds you to do when it saves the file.
+- Environment variables use PowerShell syntax, and `rushes doctor` prints them
+  that way: `$env:ELEVENLABS_API_KEY="sk_..."`.
+
+### How this is kept true
+
+Everything the tool assumes about an operating system lives in one file,
+[`lib/platform.ts`](lib/platform.ts) — finding a binary, running a shell command,
+stopping a process tree, measuring available memory, turning a path into a URL.
+`node test/run.mjs portability` reads every other source file and fails if one of
+those decisions leaks out of that module, and the CI workflow runs the suite on
+all three operating systems rather than on Linux alone.
+
 ## Honest limitations
 
 - **Browser only.** Native and desktop applications are a different product.
 - **Needs ffmpeg and a Chrome or Chromium binary.** Rushes detects and instructs;
   it never downloads a browser.
+- **On Windows, `runner.start` is your shell command, not ours.** Rushes starts
+  it and stops its whole tree; whether the command itself is written for `cmd`
+  or for a POSIX shell is up to you.
 - **The voice costs real characters** unless you use the local provider, which is
   silent and good only for timing.
 - **A storyboard is authored per demo.** It does not write itself yet.
@@ -701,7 +829,7 @@ Full model: [`SECURITY.md`](SECURITY.md).
 <!-- generated:versions -->
 | | |
 |---|---|
-| version | `1.0.8` |
+| version | `1.0.9` |
 | node | `>=22.6.0` |
 | license | `MIT` |
 | dependencies | `ajv@8.20.0`, `ajv-formats@3.0.1`, `playwright@1.62.1` |

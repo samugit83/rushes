@@ -13,6 +13,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { findChrome, chromeSource } from '../chrome.ts';
+import { SUPPORTED_PLATFORMS, exportLine, platformLabel, totalMemoryMb, which } from '../platform.ts';
 import { hasVoiceKeys, envLeakKeys } from '../env.ts';
 import { loadConfig } from '../projectConfig.ts';
 import { statePaths } from '../paths.ts';
@@ -27,17 +28,27 @@ type Status = 'ok' | 'failed' | 'skipped';
 
 interface Probe { name: string; status: Status; detail: string; fix?: string }
 
-function which(bin: string): string | null {
-  try { return execFileSync('which', [bin], { encoding: 'utf8' }).trim(); } catch { return null; }
-}
-
 function version(bin: string, args: string[]): string | null {
-  try { return execFileSync(bin, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\n')[0].trim(); }
-  catch { return null; }
+  try {
+    return execFileSync(bin, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true })
+      .split('\n')[0].trim();
+  } catch { return null; }
 }
 
 export async function doctor(args: { replayRestores?: boolean; approveRunner?: boolean } = {}): Promise<number> {
   const probes: Probe[] = [];
+
+  // Named first, because every probe below it means something slightly
+  // different per platform and a reader pasting this output should not have to
+  // say which machine it came from.
+  probes.push({
+    name: 'platform',
+    status: (SUPPORTED_PLATFORMS as readonly string[]).includes(platformLabel()) ? 'ok' : 'skipped',
+    detail: `${platformLabel()} (${process.arch})`,
+    fix: (SUPPORTED_PLATFORMS as readonly string[]).includes(platformLabel())
+      ? undefined
+      : 'linux, macos and windows are the platforms this is tested on',
+  });
 
   const nodeMajor = Number(process.versions.node.split('.')[0]);
   probes.push({
@@ -77,7 +88,8 @@ export async function doctor(args: { replayRestores?: boolean; approveRunner?: b
 
   probes.push(hasVoiceKeys()
     ? { name: 'voice keys', status: 'ok', detail: 'ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID present' }
-    : { name: 'voice keys', status: 'skipped', detail: 'not set', fix: 'put both in .env, or run with RUSHES_TTS=local for a silent draft' });
+    : { name: 'voice keys', status: 'skipped', detail: 'not set',
+        fix: `put both in .env (${exportLine('ELEVENLABS_API_KEY', 'sk_...')}), or run with RUSHES_TTS=local for a silent draft` });
 
   const leaks = envLeakKeys();
   probes.push(leaks.length
@@ -88,7 +100,7 @@ export async function doctor(args: { replayRestores?: boolean; approveRunner?: b
   probes.push({
     name: 'memory',
     status: free >= THRESHOLDS.freeMemoryFloorMb ? 'ok' : 'failed',
-    detail: `${free} MB free`,
+    detail: `${free} MB available of ${totalMemoryMb()} MB`,
     fix: free >= THRESHOLDS.freeMemoryFloorMb ? undefined : 'close what else is running; a 1080p recording plus an encode needs headroom',
   });
 

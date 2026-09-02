@@ -2,6 +2,7 @@
 // has exactly one answer everywhere in the pipeline.
 
 import { execFileSync, spawnSync } from 'node:child_process';
+import { hasBinary } from '../platform.ts';
 
 export function ffprobeJson(path: string, entries: string): Record<string, unknown> {
   const out = execFileSync('ffprobe', [
@@ -76,6 +77,7 @@ export function measureLoudness(path: string): number {
 }
 
 export function hasFfmpeg(): boolean {
-  try { execFileSync('which', ['ffmpeg'], { stdio: 'ignore' }); execFileSync('which', ['ffprobe'], { stdio: 'ignore' }); return true; }
-  catch { return false; }
+  // Both, not either: every stage that needs one needs the other, and reporting
+  // "present" on half of them turns a missing tool into a mid-build crash.
+  return hasBinary('ffmpeg') && hasBinary('ffprobe');
 }

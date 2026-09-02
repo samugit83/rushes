@@ -17,6 +17,7 @@ import { findChrome, chromeSource, resetChromeCache } from '../chrome.ts';
 import { hasFfmpeg } from '../compose/ffprobe.ts';
 import { browserRemedy, browserDepsRemedy, ffmpegRemedy, detectPackageManager, runRemedy } from './remedies.ts';
 import { hasVoiceKeys } from '../env.ts';
+import { exportLine } from '../platform.ts';
 
 interface Need {
   name: string;
@@ -109,8 +110,8 @@ export async function setup(): Promise<number> {
     // Not a failure: the pipeline runs without a voice, it just cannot publish.
     process.stderr.write('\n  One optional thing: there is no voice configured. Export two keys from\n');
     process.stderr.write('  elevenlabs.io to narrate for real:\n\n');
-    process.stderr.write('      export ELEVENLABS_API_KEY=sk_...\n');
-    process.stderr.write('      export ELEVENLABS_VOICE_ID=...\n\n');
+    process.stderr.write(`      ${exportLine('ELEVENLABS_API_KEY', 'sk_...')}\n`);
+    process.stderr.write(`      ${exportLine('ELEVENLABS_VOICE_ID', '...')}\n\n`);
     process.stderr.write('  Without them, `RUSHES_TTS=local` produces correctly-timed silent clips.\n');
     process.stderr.write('  Fine for trying it out, never for something you publish.\n');
   }

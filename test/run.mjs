@@ -8,10 +8,10 @@
 
 import { readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { results } from './harness.mjs';
 
-const here = dirname(decodeURIComponent(new URL(import.meta.url).pathname));
+const here = dirname(fileURLToPath(import.meta.url));
 const only = process.argv[2];
 
 const suites = readdirSync(here)

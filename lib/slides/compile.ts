@@ -117,7 +117,13 @@ export function lintSlides(slides: SlideSource[]): Diagnostic[] {
           { slide: s.id, block }, {},
           ['use flow-row, sequence or hub', 'remove the connectors']));
       }
-      const ids = new Set((s.items ?? []).map((it, i) => it.id ?? `item-${i + 1}`));
+      // Connector anchors reference item ids. For `layers` the items live in
+      // lanes and are numbered globally in lane order, matching renderBlock.
+      let laneIdx = 0;
+      const laneIds = (s.lanes ?? []).flatMap((l) => (l.items ?? []).map((it) => it.id ?? `item-${++laneIdx}`));
+      const ids = new Set(block === 'layers'
+        ? laneIds
+        : (s.items ?? []).map((it, i) => it.id ?? `item-${i + 1}`));
       for (const c of s.connectors ?? []) {
         // A self-loop has no geometry to draw: both ports land on one box, the
         // curve doubles back through it, and every composition check exempts it

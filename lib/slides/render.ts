@@ -134,9 +134,13 @@ async function renderOn(page: Page, opts: RenderOptions): Promise<RenderedSlide[
 
 /** A contact sheet with relative paths, so it opens from anywhere. */
 export function contactSheet(rendered: RenderedSlide[], title: string, gifs: Record<string, string> = {}): string {
+  // A cache-buster on every image, because a file:// page reopened at the same
+  // path serves the browser's cached picture — which reads as "nothing changed"
+  // after a re-render. A fresh token per sheet forces the new bytes to load.
+  const bust = Date.now().toString(36);
   const cards = rendered.filter((r) => r.png).map((r) => {
     // Prefer the gif when a slide animates, so the motion is what you review.
-    const src = gifs[r.id] ? `${r.id}.gif` : `${r.id}.png`;
+    const src = `${gifs[r.id] ? `${r.id}.gif` : `${r.id}.png`}?v=${bust}`;
     const tag = gifs[r.id] ? ' · <span style="color:#f59e0b">▶ motion</span>' : '';
     return `
     <figure>

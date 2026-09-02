@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.0.9
+
+Tier 3: genuinely complex, organised, multi-layer diagrams.
+
+- **New `layers` block.** A diagram of titled horizontal lanes — each lane a
+  layer and a group — with a row of nodes per lane and connectors flowing
+  between any of them. It is the organised, multi-layer picture the single-row
+  and hub blocks could not express.
+- **Orthogonal connector routing for lanes.** A cross-lane connector travels in
+  the empty gap BETWEEN lanes with right angles, so it never cuts through a box;
+  a curve would. Same-lane connectors stay straight.
+- **Enforced, not hoped:** a within-lane connector must join adjacent nodes and
+  a cross-lane one should go to the adjacent lane — the edge-through-node check
+  flags a skip either way. Whole-slide capacity is 18 nodes across all lanes.
+
+## 1.0.9
+
+Genuinely complex, organized diagrams.
+
+- **New `layers` block (Tier 3): lanes.** A slide can now be a stack of titled
+  horizontal lanes, each a layer/group holding a row of nodes, with connectors
+  that flow between any of them and route **orthogonally through the lane gaps**
+  so a cross-lane edge never cuts through a box. This is the multi-layer,
+  organized diagram the block vocabulary could not express before. Same
+  no-coordinates rule: geometry is (lane, order). Cap is 18 nodes per slide.
+- **Higher caps on the existing blocks.** flow-row/hub/sequence 8 -> 10,
+  bullets/stack 6 -> 8, compare/store/metric 3 -> 4, badge-list 12 -> 14, with
+  the layout CSS to hold them. The glance rule still applies; the checker still
+  refuses a slide that overflows or crowds.
+
 ## 1.0.8
 
 You can now see a slide's motion before recording, and the motion is bolder.

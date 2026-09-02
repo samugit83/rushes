@@ -9,6 +9,7 @@ import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
 // F1 — the value scrubber redacted the field the receipt exists to record.
@@ -360,7 +361,7 @@ await test('F11: stopping the runner stops the app, not just the shell around it
   process.env.RUSHES_PROJECT_ROOT = root;
   try {
     const port = 8799;
-    const skillRoot = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
+    const skillRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
     const runner = {
       start: `node ${JSON.stringify(join(skillRoot, 'test', 'fixtures', 'static', 'server.mjs'))} ${port}`,
       cwd: skillRoot,
@@ -456,7 +457,7 @@ await test('a project command refuses to scatter into an existing repo', async (
   const { mkdtempSync, mkdirSync, rmSync, existsSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join, dirname } = await import('node:path');
-  const bin = join(dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..', 'bin', 'rushes.mjs');
+  const bin = join(dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'rushes.mjs');
 
   const repo = mkdtempSync(join(tmpdir(), 'rushes-repo-'));
   mkdirSync(join(repo, '.git')); // it looks like a checkout, not a rushes project

@@ -4,6 +4,14 @@
 # monorepo-wide workflow as a side effect of this file. The skill's tests are
 # Node, the skill is not part of any shipped application, and its home is its own
 # repository with its own CI. An adapter is data and has no tests.
+#
+# THE MATRIX IS THE POINT. "Works on Linux, macOS and Windows" is a claim, and a
+# claim this repository does not accept without a measurement. Every seam where
+# the code leaves Node for the OS — finding a binary, spawning a shell, stopping
+# a process tree, asking how much memory is available, turning a path into a URL
+# — is different on the three, and the only honest way to know they all work is
+# to run them on all three. `portability` greps for a regression; these jobs
+# prove the thing actually runs.
 
 name: ci
 
@@ -13,8 +21,15 @@ on:
   pull_request:
 
 jobs:
+  # The fast half: no ffmpeg, no browser. Runs everywhere, first, because a
+  # platform fault in path handling or binary lookup shows up here in a minute
+  # rather than after a ten-minute provisioning step.
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,29 +40,103 @@ jobs:
       - name: type-check
         run: npm run type-check
 
-      - name: unit + neutrality
+      - name: unit + neutrality + portability
         run: |
           node test/run.mjs unit
           node test/run.mjs neutrality
+          node test/run.mjs portability
+        shell: bash
 
-      - name: provision ffmpeg and a browser
+      - name: geometry + slides (no browser needed)
+        run: |
+          node test/run.mjs geometry
+          node test/run.mjs slides-hardening
+        shell: bash
+
+      - name: README freshness
+        if: matrix.os == 'ubuntu-latest'
+        run: node test/run.mjs readme
+
+      # `doctor` reports and changes nothing, so it is safe to run before
+      # anything is provisioned. What is being checked here is that it RUNS and
+      # reports honestly on a machine with no ffmpeg and no browser: an absent
+      # tool must be `unavailable`, never a false pass and never a crash.
+      - name: doctor reports honestly on a bare machine
+        run: node bin/rushes.mjs doctor || true
+        shell: bash
+
+  # The half that needs real tools. Same three platforms: the conformance suite
+  # drives a real browser, the timing test decodes a real recording, and the
+  # determinism test runs a real encode.
+  integration:
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+
+      - name: provision ffmpeg (linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          npx playwright install --with-deps chromium
+
+      - name: provision ffmpeg (macos)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+
+      # choco is preinstalled on the Windows runner image.
+      - name: provision ffmpeg (windows)
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
+
+      # `--with-deps` installs system libraries and exists only on Linux.
+      - name: provision a browser (linux)
+        if: runner.os == 'Linux'
+        run: npx playwright install --with-deps chromium
+
+      - name: provision a browser (macos, windows)
+        if: runner.os != 'Linux'
+        run: npx playwright install chromium
+
+      - name: doctor finds everything it needs
+        run: node bin/rushes.mjs doctor
+        shell: bash
 
       - name: conformance suite
         run: node test/run.mjs conformance
+        shell: bash
 
       - name: golden timing
         run: node test/run.mjs timing
+        shell: bash
 
-      - name: README freshness
-        run: node test/run.mjs readme
+      - name: deterministic mux
+        run: node test/run.mjs determinism
+        shell: bash
 
-      - name: doctor
-        run: node bin/rushes.mjs doctor
+      - name: slides runtime + motion
+        run: |
+          node test/run.mjs slides-runtime
+          node test/run.mjs slides-motion
+        shell: bash
 
+      - name: hardening + security
+        run: |
+          node test/run.mjs hardening
+          node test/run.mjs security
+        shell: bash
+
+  # Deterministic packaging is a property of the archive, not of the platform,
+  # and zlib output varies between Node majors — so this stays pinned to one
+  # runner deliberately rather than being spread across the matrix.
   package:
     runs-on: ubuntu-latest
     steps:

@@ -13,6 +13,7 @@ lib/
   check/                  the registry, the checker, the receipt, evidence, vision, rehearsal
   slides/                 compile, render, measure, tokens
   publish/                OPTIONAL; metadata, the gate, the catalogue, the uploader
+  platform.ts             the ONLY file that knows which operating system this is
   diagnostics.ts          the structured-failure type and the collector
   secrets.ts              the value scrubber and the on-screen scanner
   egress.ts               resolved-IP classification, ported from a Python original
@@ -68,6 +69,25 @@ slides/src/*.json ─────┘                │            timeline.json
 | add a check | `lib/check/registry.ts` (with a severity per profile) + the measurement in `lib/check/index.ts` |
 | change what a receipt records | `lib/check/receipt.ts` + `auditableFields` |
 | change how a video is cut | `lib/compose/mux.ts` |
+
+## The one file that knows about the operating system
+
+`lib/platform.ts`. Everything else is platform-neutral by construction, and the
+only places that are not are the four seams where the code leaves Node for the
+OS: finding a binary (`which` does not exist on Windows), spawning a shell (`sh`
+does not either), stopping a process TREE (process groups are POSIX-only), and
+asking how much memory is available (`os.freemem()` on macOS counts only free
+pages and excludes the pools the kernel reclaims on demand, so a 32 GB machine
+reports a few hundred megabytes).
+
+Each is answered once, there. `test/run.mjs portability` greps the whole source
+for the POSIX-only forms and fails if one escapes that module, and CI runs the
+suite on Linux, macOS and Windows so the grep is backed by an execution.
+
+Turning a path into a URL belongs to the same rule: `pathToFileURL`, never
+`` `file://${path}` ``, and `fileURLToPath(import.meta.url)`, never
+`new URL(import.meta.url).pathname` — which yields `/C:/Users/...` on Windows
+and made every skill-relative path unresolvable there.
 
 ## The two things that are duplicated on purpose
 

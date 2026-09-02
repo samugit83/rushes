@@ -224,6 +224,27 @@
     return { el: el, box: null };
   }
 
+  /* Orthogonal routing for lane diagrams: right-angle paths that travel in the
+   * gap BETWEEN lanes, so a cross-lane connector never cuts through a box. A
+   * curve would; a right angle in the empty gap does not. Same-lane connectors
+   * stay a straight horizontal line. */
+  function orthPath(p1, p2) {
+    if (Math.abs(p2.x - p1.x) < 2 || Math.abs(p2.y - p1.y) < 2) {
+      return 'M' + p1.x + ',' + p1.y + ' L' + p2.x + ',' + p2.y;
+    }
+    var midY = (p1.y + p2.y) / 2;
+    var r = Math.min(14, Math.abs(p2.y - p1.y) / 2 - 1, Math.abs(p2.x - p1.x) / 2 - 1);
+    if (!(r > 1)) return 'M' + p1.x + ',' + p1.y + ' L' + p1.x + ',' + midY + ' L' + p2.x + ',' + midY + ' L' + p2.x + ',' + p2.y;
+    var vdir = p2.y > p1.y ? 1 : -1;
+    var xdir = p2.x > p1.x ? 1 : -1;
+    return 'M' + p1.x + ',' + p1.y +
+      ' L' + p1.x + ',' + (midY - vdir * r) +
+      ' Q' + p1.x + ',' + midY + ' ' + (p1.x + xdir * r) + ',' + midY +
+      ' L' + (p2.x - xdir * r) + ',' + midY +
+      ' Q' + p2.x + ',' + midY + ' ' + p2.x + ',' + (midY + vdir * r) +
+      ' L' + p2.x + ',' + p2.y;
+  }
+
   /* Measure, then draw. An anchor with no box is a diagnostic, not a guess. */
   function drawConnectors(slide) {
     var svg = slide.querySelector('.connectors');
@@ -237,6 +258,7 @@
     var spec = [];
     try { spec = JSON.parse(svg.getAttribute('data-connectors') || '[]'); } catch (e) { spec = []; }
     var host = slide.querySelector('.slide-body') || slide;
+    var isLayers = !!slide.querySelector('.block-layers');
     // The layer is `inset: 0` inside .slide-body, so its coordinate space IS
     // the body box. Offsetting it again against the slide double-counts and
     // parks every path at the bottom of the frame.
@@ -314,7 +336,9 @@
       var p1 = portPoint(plan.ra, plan.sides.from, plan.fromOffset, origin);
       var p2 = portPoint(plan.rb, plan.sides.to, plan.toOffset, origin);
       var d;
-      if (plan.sides.horizontal) {
+      if (isLayers) {
+        d = orthPath(p1, p2);
+      } else if (plan.sides.horizontal) {
         var mx = (p1.x + p2.x) / 2;
         d = 'M' + p1.x + ',' + p1.y + ' C' + mx + ',' + p1.y + ' ' + mx + ',' + p2.y + ' ' + p2.x + ',' + p2.y;
       } else {

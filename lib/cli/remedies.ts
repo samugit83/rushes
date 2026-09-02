@@ -8,21 +8,23 @@
 // privileged commands you did not read. So that half is PRINTED, exactly, for
 // the package manager you actually have, and you run it.
 
-import { execFileSync } from 'node:child_process';
-import { platform } from 'node:os';
+import { IS_LINUX, IS_MAC, IS_WINDOWS, hasBinary, runShell } from '../platform.ts';
 
-export type PackageManager = 'apt' | 'dnf' | 'pacman' | 'zypper' | 'apk' | 'brew' | 'unknown';
-
-function has(bin: string): boolean {
-  try { execFileSync('which', [bin], { stdio: 'ignore' }); return true; } catch { return false; }
-}
+export type PackageManager =
+  | 'apt' | 'dnf' | 'pacman' | 'zypper' | 'apk' | 'brew' | 'winget' | 'choco' | 'scoop' | 'unknown';
 
 /** The package manager this machine actually has, not the one its family usually has. */
 export function detectPackageManager(): PackageManager {
-  if (platform() === 'darwin') return has('brew') ? 'brew' : 'unknown';
+  if (IS_MAC) return hasBinary('brew') ? 'brew' : 'unknown';
+  if (IS_WINDOWS) {
+    for (const [bin, name] of [['winget', 'winget'], ['choco', 'choco'], ['scoop', 'scoop']] as const) {
+      if (hasBinary(bin)) return name;
+    }
+    return 'unknown';
+  }
   for (const [bin, name] of [['apt-get', 'apt'], ['dnf', 'dnf'], ['pacman', 'pacman'],
                              ['zypper', 'zypper'], ['apk', 'apk']] as const) {
-    if (has(bin)) return name;
+    if (hasBinary(bin)) return name;
   }
   return 'unknown';
 }
@@ -43,16 +45,28 @@ const FFMPEG: Record<PackageManager, string> = {
   zypper: 'sudo zypper install -y ffmpeg',
   apk: 'sudo apk add ffmpeg',
   brew: 'brew install ffmpeg',
+  winget: 'winget install --id Gyan.FFmpeg -e',
+  choco: 'choco install ffmpeg -y',
+  scoop: 'scoop install ffmpeg',
   unknown: 'install ffmpeg with your system package manager',
 };
+
+/**
+ * Package managers that install into a prefix the invoking user already owns, so
+ * the command needs no privileges. Homebrew and scoop do; winget and choco write
+ * to machine-wide locations and want an elevated shell.
+ */
+const UNPRIVILEGED = new Set<PackageManager>(['brew', 'scoop', 'unknown']);
 
 export function ffmpegRemedy(pm = detectPackageManager()): Remedy {
   return {
     command: FFMPEG[pm],
-    // Homebrew installs into a prefix the user owns, so it is the one package
-    // manager here that does not need privileges.
-    needsSudo: pm !== 'brew' && pm !== 'unknown',
-    note: pm === 'unknown' ? 'no known package manager was found on this machine' : undefined,
+    needsSudo: !UNPRIVILEGED.has(pm),
+    note: pm === 'unknown'
+      ? (IS_WINDOWS
+        ? 'no winget, choco or scoop was found; install ffmpeg and put it on PATH'
+        : 'no known package manager was found on this machine')
+      : undefined,
   };
 }
 
@@ -68,8 +82,8 @@ export function browserRemedy(): Remedy {
 }
 
 /** On Linux the engine also wants shared libraries, and those do need privileges. */
-export function browserDepsRemedy(pm = detectPackageManager()): Remedy | null {
-  if (platform() !== 'linux') return null;
+export function browserDepsRemedy(_pm = detectPackageManager()): Remedy | null {
+  if (!IS_LINUX) return null;
   return {
     command: 'npx --yes playwright install-deps chromium',
     needsSudo: true,
@@ -77,12 +91,13 @@ export function browserDepsRemedy(pm = detectPackageManager()): Remedy | null {
   };
 }
 
+/**
+ * Run a remedy through the platform's own shell.
+ *
+ * This used to hardcode `sh -c`, which meant the one command that exists to set
+ * the tool up could not run on Windows. `runShell` resolves to `cmd.exe` there
+ * and to `/bin/sh` everywhere else, with the same contract.
+ */
 export function runRemedy(remedy: Remedy): { ok: boolean; output: string } {
-  try {
-    const out = execFileSync('sh', ['-c', remedy.command], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    return { ok: true, output: String(out ?? '') };
-  } catch (e) {
-    const err = e as { stderr?: string; stdout?: string; message?: string };
-    return { ok: false, output: String(err.stderr ?? err.stdout ?? err.message ?? '') };
-  }
+  return runShell(remedy.command);
 }

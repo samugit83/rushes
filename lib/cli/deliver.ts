@@ -39,6 +39,7 @@ import { recordBuild } from '../publish/catalogue.ts';
 import { memoryFloorDiagnostic, startApp, configSha256 } from '../runner/index.ts';
 import { probeVideo } from '../compose/ffprobe.ts';
 import { sweep, mb } from '../cleanup.ts';
+import { openCommand } from '../platform.ts';
 import { readIntroDurationMs, writeIntroDurationMs } from './misc.ts';
 
 export interface DeliverOptions {
@@ -303,6 +304,9 @@ export async function buildAndDeliver(opts: DeliverOptions): Promise<number> {
       process.stderr.write(`thumbnail: ${P.thumbPng}\n`);
       process.stderr.write(`youtube:   ${P.youtube}\n`);
       process.stderr.write(`linkedin:  ${P.linkedin}\n`);
+      // The command for the shell the reader is actually in, so the last step of
+      // a delivery is a paste rather than a translation.
+      process.stderr.write(`\nwatch it:  ${openCommand(P.mp4)}\n`);
       process.stderr.write('\nNOT published. Review the video, then ask the user before publishing.\n');
       return 0;
     } finally {

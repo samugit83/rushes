@@ -19,11 +19,11 @@ import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { hasFfmpeg } from '../lib/compose/ffprobe.ts';
 import { findChrome } from '../lib/chrome.ts';
 
-const here = dirname(decodeURIComponent(new URL(import.meta.url).pathname));
+const here = dirname(fileURLToPath(import.meta.url));
 const TOLERANCE_MS = 400; // the plan's ±100 ms is the CDP-engine target; the
                           // change-driven recorder is held to a looser band so
                           // the test states the real number instead of failing

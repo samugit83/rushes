@@ -19,6 +19,7 @@ import type { BrowserContext, Page } from 'playwright';
 import type { AuthConfig, ProjectConfig } from '../projectConfig.ts';
 import { projectRoot, statePaths } from '../paths.ts';
 import { registerSecret } from '../secrets.ts';
+import { IS_WINDOWS } from '../platform.ts';
 import { type Diagnostic, diag } from '../diagnostics.ts';
 import { resolveLocator } from '../engine/locators.ts';
 
@@ -258,9 +259,24 @@ export async function verifySignedIn(page: Page, config: ProjectConfig): Promise
   return out;
 }
 
-/** Write a captured browser state 0600 (SP6). */
+/**
+ * Write a captured browser state 0600 (SP6).
+ *
+ * POSIX mode bits do not exist on Windows, where `chmod` is very nearly a no-op
+ * and inherited directory ACLs decide who can read the file. The write still
+ * happens; what changes is that `stateProtection()` reports what was actually
+ * achieved, so `rushes login` cannot print "mode 0600" on a platform where that
+ * is not a true statement about the file.
+ */
 export function writeState(path: string, json: string): void {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, json, { mode: 0o600 });
-  chmodSync(path, 0o600);
+  if (!IS_WINDOWS) chmodSync(path, 0o600);
+}
+
+/** What the filesystem actually enforces on a written state file, in words. */
+export function stateProtection(): string {
+  return IS_WINDOWS
+    ? 'inherits this directory\'s ACL — Windows has no POSIX mode bits, so restrict the folder if others use this machine'
+    : 'mode 0600';
 }

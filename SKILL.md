@@ -9,7 +9,7 @@ description: >-
   web framework; nothing about the framework is assumed.
 license: MIT
 metadata:
-  version: 1.0.0
+  version: 1.0.9
   author: Rushes
 ---
 
@@ -64,7 +64,7 @@ deliberately deferred to Gate 4, which is what keeps intake to five questions.
 |---|---|---|
 | **1. Resolved brief** | before any storyboard | echo every answer, every default you took, every fact you discovered, and the extracted palette, in one message the user can correct in one reply |
 | **2. Outline** | before any voice or browser | present the scene list with one narration line each. For every slide scene, name its **mode and block** and what goes on it |
-| **2.5. Slide preview** | after the outline, still before any voice or browser | run `rushes slides preview <id>` and show one PNG per slide. This is where the user directs slide design, in words, against a picture |
+| **2.5. Slide preview** | after the outline, still before any voice or browser | run `rushes slides preview <id>` and show the contact sheet: a still per slide, plus a **gif for every slide that animates** (flowing connectors, beat pulses). Motion is half the design and a PNG hides it. This is where the user directs slide design, in words, against a picture |
 | **3. Review** | after `deliver` exits zero | present the mp4 and its duration, the check summary, the narration-check counts, the evidence contact sheet, the thumbnail, the description and the post — then **stop** |
 | **4. Publish** | on a new user message only | ask privacy, playlist and social, then `rushes publish <id> --confirm` |
 
@@ -84,8 +84,10 @@ An outline at Gate 2 looks like this:
 1  [live]              the graph, panning
 S1 [composed/flow-row] the scan launch journey: 5 boxes, 4 arrows, broker highlighted
 2  [live]              a node drawer opens
-S2 [authored]          one number, full bleed
+S2 [composed/metric]   three numbers, one per region
 3  [live]              filtering by type
+S3 [authored]          the total counting up from zero, full bleed
+                       — `metric` renders the number, nothing composes the count
 ```
 
 ---
@@ -145,8 +147,15 @@ warns when you reach for it and something better was available.
 - **Every number the voice says is bound to live data with an `assert`.** A claim
   that was true when you wrote it and false when it recorded is the failure this
   prevents, and it cannot be fixed after upload.
-- **A slide is `composed` when it has a topology and `authored` when it does
-  not.** Neither is a fallback for the other. See `references/slide-contract.md`.
+- **Start every slide from `composed`.** Fourteen blocks cover both halves of
+  the job: seven carry a topology and take connectors (`flow-row`, `sequence`,
+  `ring`, `hub`, `stack`, `compare`, `layers`), seven carry content (`title`,
+  `bullets`, `code`, `quote`, `metric`, `badge-list`, `store`). **A slide with
+  no topology is still `composed`.** Reach for `authored` only when you can name the block
+  you would otherwise use and say what it cannot do — a bespoke visual moment,
+  or motion no block has. It is never the way around a capacity limit: a
+  `compare` with four columns is two slides or a different block, not
+  hand-written HTML. See `references/slide-contract.md`.
 
 ---
 
@@ -165,6 +174,9 @@ rushes evidence <id>             # keyframes from the DELIVERED mp4 + narration 
 `validate` and `rehearse` cost no voice credits and no ffmpeg time. Run them
 until they are clean **before** `deliver`. `deliver` is the only command that
 spends.
+
+Every command takes `--project <dir>`, and outside a rushes project you must
+pass it — see section 9.
 
 ---
 
@@ -228,6 +240,23 @@ below as that.
 ```bash
 node bin/rushes.mjs doctor        # from the directory this SKILL.md is in
 ```
+
+**A rushes project is its own folder**, holding one `rushes.config.json`, the
+storyboards, the slides and `out/`. It is NOT the repository of the app you are
+filming. Running a command with no `--project` from inside an existing checkout
+(one with a `.git` and no `rushes.config.json`) is **refused outright**, because
+that is how `demos/`, `slides/` and `out/` end up scattered through somebody's
+source tree. So when the user points you at their app, film it from a dedicated
+folder:
+
+```bash
+node bin/rushes.mjs init     --project ~/rushes-projects/<app>
+node bin/rushes.mjs validate <id> --project ~/rushes-projects/<app>
+```
+
+`doctor`, `setup`, `status`, `help` and `publish-auth` write nothing and are
+exempt. Once the config exists in that folder you may run from inside it and
+drop the flag.
 
 The first invocation installs the skill's own dependencies, once, into that same
 directory. It needs no privileges and asks for nothing. If it cannot, it prints
