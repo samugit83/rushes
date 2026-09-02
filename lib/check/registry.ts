@@ -35,6 +35,7 @@ export const CHECKS: CheckSpec[] = [
   { name: 'audio_loudness', measures: 'integrated loudness -18..-14 LUFS', standard: 'ignore', showcase: 'warn' },
   { name: 'video_stream', measures: 'resolution, fps and duration as configured', standard: 'error', showcase: 'error' },
   { name: 'no_black_scene', measures: 'scene midpoint keyframe not uniformly dark', standard: 'ignore', showcase: 'error' },
+  { name: 'scene_opens_on_its_slide', measures: 'a slide scene is showing its slide when its narration starts', standard: 'error', showcase: 'error' },
   { name: 'captions_aligned', measures: 'cues exist; the last cue ends before the video does', standard: 'warn', showcase: 'error' },
   { name: 'caption_reading_rate', measures: 'no cue over ~20 characters per second', standard: 'ignore', showcase: 'warn' },
   { name: 'privacy_clean', measures: 'no secret or PII pattern in captured visible text', standard: 'error', showcase: 'error' },

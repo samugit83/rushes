@@ -45,6 +45,12 @@ export const EXTERNAL_READINESS = {
 } as const;
 
 export const THRESHOLDS = {
+  /**
+   * How far a scene's opening frame may sit from its own slide, as a mean
+   * absolute difference over a 32x18 grey signature (0-255). Measured: an
+   * honest frame lands at 1-3 even mid-animation, the wrong page at ~20.
+   */
+  sceneOpenFrameDiff: 8,
   deadAirMs: 8000, // per-scene silence after the narration ends
   audioMeanDbMin: -30,
   audioMeanDbMax: -6,

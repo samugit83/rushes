@@ -679,6 +679,7 @@ seeding, dismissers, branding, redaction, external navigation, publishing, is in
 | `audio_loudness` | integrated loudness -18..-14 LUFS | ignore | warn |
 | `video_stream` | resolution, fps and duration as configured | **error** | **error** |
 | `no_black_scene` | scene midpoint keyframe not uniformly dark | ignore | **error** |
+| `scene_opens_on_its_slide` | a slide scene is showing its slide when its narration starts | **error** | **error** |
 | `captions_aligned` | cues exist; the last cue ends before the video does | warn | **error** |
 | `caption_reading_rate` | no cue over ~20 characters per second | ignore | warn |
 | `privacy_clean` | no secret or PII pattern in captured visible text | **error** | **error** |
@@ -828,7 +829,7 @@ all three operating systems rather than on Linux alone.
 <!-- generated:versions -->
 | | |
 |---|---|
-| version | `1.0.9` |
+| version | `1.0.10` |
 | node | `>=22.6.0` |
 | license | `MIT` |
 | dependencies | `ajv@8.20.0`, `ajv-formats@3.0.1`, `playwright@1.62.1` |

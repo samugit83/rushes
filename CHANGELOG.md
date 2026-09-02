@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.10
+
+A scene now opens on its own picture.
+
+- **Fixed: the opening navigation ran inside the scene's own window.** A scene
+  stamped its start and THEN navigated, so the page load played under the
+  incoming narration: a slide scene showed the live app for the second or two
+  the deck took to load, and the top of the video showed the boot page. The
+  opening `goto`/`slide` is now hoisted off the scene clock, and scene 0's off
+  the master clock, so the picture is the scene's own from the first word. The
+  transition costs a beat of silence held on the outgoing frame, which reads as
+  an edit.
+- **New check `scene_opens_on_its_slide`.** Measures the DELIVERED frame at each
+  slide scene's start against that slide's own render, coarsely enough that
+  animation and the cursor cannot fail an honest frame. An error at every
+  profile: nothing else in the check set looks at whether the right picture is
+  on screen.
+
 ## 1.0.9
 
 Tier 3: genuinely complex, organised, multi-layer diagrams.

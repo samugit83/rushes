@@ -61,15 +61,52 @@ export async function record(opts: RecordOptions): Promise<RecordResult> {
   const sceneText: Record<string, string> = {};
   const beatsFired: Record<string, number> = {};
 
-  // When scene 0 opens with its own `goto`, the boot page is pure staging: it
-  // would sit on screen for bootMs and, because the leadTrimMs trim is only
-  // approximate against a change-driven screencast, leak past the trim into the
-  // top of the finished video. Park on a neutral dark frame first so anything
-  // that leaks reads as an intentional cut rather than the wrong page.
-  if (story.scenes[0]?.steps?.[0]?.do === 'goto') {
+  // A SCENE'S OPENING NAVIGATION BELONGS BEFORE ITS CLOCK.
+  // It used to run after the scene's start was stamped, so the page load sat
+  // INSIDE the scene's own window and the first seconds of its narration played
+  // over the previous picture: the boot page at the top of the video, the page
+  // we just left at every later cut. A slide scene showed the live app for the
+  // second or two the deck took to load, which is the defect this hoist exists
+  // to prevent. The transition now costs a beat of silence between scenes —
+  // held on the outgoing picture, which reads as an edit — instead of playing
+  // the incoming narration over the wrong page.
+  const openerOf = (sc?: Storyboard['scenes'][number]): Step | null => {
+    const s = sc?.steps?.[0];
+    return s && (s.do === 'goto' || s.do === 'slide') ? s : null;
+  };
+
+  /** One step with the failure handling every step gets; returns its duration. */
+  const execStep = async (sceneId: string, step: Step, i: number): Promise<number> => {
+    const stepStarted = Date.now();
+    try {
+      await runStep(stepContext, step);
+    } catch (e) {
+      const code = classifyStepError(e);
+      const shot = join(P.evidenceDir, `fail-${sceneId}-${i}.png`);
+      // A screenshot at the moment of failure is the difference between "a
+      // locator missed" and knowing what was actually on screen instead.
+      await page.screenshot({ path: shot }).catch(() => {});
+      const loc = locatorOf(step);
+      const { supportedFixes, evidence } = await suggestFixes(page, loc);
+      problems.add(diag(code, 'error', (e as Error).message,
+        { sceneId, stepIndex: i, do: step.do, locator: loc ? describeLocator(loc) : null },
+        { screenshot: shot, url: page.url(), waitedMs: Date.now() - stepStarted, ...evidence },
+        supportedFixes));
+    }
+    return Date.now() - stepStarted;
+  };
+
+  // Scene 0 opens the video, so its navigation runs before the MASTER clock too.
+  // Park on a neutral dark frame first: the leadTrimMs trim against a
+  // change-driven screencast is only approximate, so anything that leaks past it
+  // should read as an intentional cut rather than as the wrong page.
+  const opener0 = openerOf(story.scenes[0]);
+  if (opener0) {
     await page.goto(holdPageUrl(), { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(TIMING.preRollMs);
+    await execStep(story.scenes[0].id, opener0, 0);
   }
+  const preRanOpener = new Set<string>(opener0 ? [story.scenes[0].id] : []);
 
   const t0 = Date.now();
   const leadTrimMs = t0 - session.recordStart; // trimmed off the front in the mux
@@ -86,8 +123,18 @@ export async function record(opts: RecordOptions): Promise<RecordResult> {
   // from outside every inner catch.
   try {
   for (const scene of story.scenes) {
-    const startMs = Date.now() - t0;
     process.stderr.write(`  ▶ ${scene.id}\n`);
+
+    // The opening navigation, off the clock (see openerOf above). Scene 0's ran
+    // before t0; every other scene's runs here, in the gap between scenes.
+    const stepTimings: { do: Step['do']; ms: number }[] = [];
+    const opener = openerOf(scene);
+    const firstStep = opener ? 1 : 0;
+    if (opener && !preRanOpener.has(scene.id)) {
+      stepTimings.push({ do: opener.do, ms: await execStep(scene.id, opener, 0) });
+    }
+
+    const startMs = Date.now() - t0;
 
     // Slide beats are anchored to WORDS, so a reworded sentence or a different
     // voice moves every beat correctly with no storyboard edit (L4).
@@ -97,26 +144,9 @@ export async function record(opts: RecordOptions): Promise<RecordResult> {
     let firedCount = 0;
     const pendingBeats = [...beats];
 
-    const stepTimings: { do: Step['do']; ms: number }[] = [];
-    for (let i = 0; i < scene.steps.length; i++) {
+    for (let i = firstStep; i < scene.steps.length; i++) {
       const step = scene.steps[i];
-      const stepStarted = Date.now();
-      try {
-        await runStep(stepContext, step);
-      } catch (e) {
-        const code = classifyStepError(e);
-        const shot = join(P.evidenceDir, `fail-${scene.id}-${i}.png`);
-        // A screenshot at the moment of failure is the difference between "a
-        // locator missed" and knowing what was actually on screen instead.
-        await page.screenshot({ path: shot }).catch(() => {});
-        const loc = locatorOf(step);
-        const { supportedFixes, evidence } = await suggestFixes(page, loc);
-        problems.add(diag(code, 'error', (e as Error).message,
-          { sceneId: scene.id, stepIndex: i, do: step.do, locator: loc ? describeLocator(loc) : null },
-          { screenshot: shot, url: page.url(), waitedMs: Date.now() - stepStarted, ...evidence },
-          supportedFixes));
-      }
-      stepTimings.push({ do: step.do, ms: Date.now() - stepStarted });
+      stepTimings.push({ do: step.do, ms: await execStep(scene.id, step, i) });
 
       // Fire any beat whose anchor word has already been spoken by now.
       const elapsed = Date.now() - t0 - startMs;

@@ -9,6 +9,7 @@
 // never be reported as a showcase pass.
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import type { QualityProfile } from '../config.ts';
@@ -21,6 +22,7 @@ import { probeVideo, volumeDetect, measureLoudness } from '../compose/ffprobe.ts
 import { envLeakKeys } from '../env.ts';
 import { containsSecret, registeredSecrets } from '../secrets.ts';
 import { readPendingRestores } from '../engine/preflight.ts';
+import { demoPaths } from '../paths.ts';
 import { buildChapters } from '../publish/youtubeMeta.ts';
 
 export interface CheckResult { name: string; ok: boolean; level: Level; details: string[] }
@@ -77,6 +79,34 @@ function frameIsBlack(mp4: string, atMs: number): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * A coarse 32x18 greyscale signature of one frame, from a video (at `atMs`) or
+ * an image. Deliberately tiny: it answers "is this the same PICTURE", not "are
+ * these pixels equal", so animation, the cursor overlay and encoder noise all
+ * fall below the signal.
+ */
+export function frameSignature(src: string, atMs?: number): number[] | null {
+  try {
+    const args = ['-hide_banner', '-loglevel', 'error'];
+    if (atMs !== undefined) args.push('-ss', (atMs / 1000).toFixed(3));
+    args.push('-i', src, '-frames:v', '1', '-vf', 'scale=32:18,format=gray', '-f', 'rawvideo', '-');
+    // No encoding: stdout is binary, and utf8 would mangle it into nonsense.
+    const run = spawnSync('ffmpeg', args, { maxBuffer: 4 * 1024 * 1024 });
+    const buf = run.stdout;
+    if (!buf || buf.length < 32 * 18) return null;
+    return Array.from(buf.subarray(0, 32 * 18));
+  } catch {
+    return null;
+  }
+}
+
+export function meanAbsDiff(a: number[], b: number[]): number {
+  if (a.length !== b.length || !a.length) return Number.POSITIVE_INFINITY;
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]);
+  return s / a.length;
 }
 
 function cuesOf(vtt: string): { startMs: number; endMs: number; text: string }[] {
@@ -213,6 +243,37 @@ export function runChecks(input: CheckInput): CheckReport {
       diagnostics.push(diag('video/black-scene', 'error', `scene "${t.sceneId}" is uniformly dark at its midpoint`,
         { sceneId: t.sceneId }, {}, ['check the scene navigated somewhere', 'raise the readiness timeout']));
     }
+
+    // A slide scene must be ON its slide when its narration starts. The failure
+    // this catches is silent and shipped twice: the deck load ran inside the
+    // scene's window, so the video opened on the live app for a second or two
+    // while the voice was already describing the diagram. Nothing else measures
+    // it — the slide renders, the narration is right, the timeline is monotonic,
+    // and the picture is simply the wrong one. Compared coarsely (32x18 grey) so
+    // an in-flight animation or the cursor overlay cannot fail an honest frame:
+    // the real signal is enormous next to that noise (a match measures ~1-3, the
+    // wrong page ~20).
+    const lateOpen: string[] = [];
+    for (const scene of story.scenes) {
+      if (scene.steps?.[0]?.do !== 'slide') continue;
+      const t = timeline.find((e) => e.sceneId === scene.id);
+      const png = join(demoPaths(story.id).slidePreviewDir, `${scene.steps[0].slide}.png`);
+      if (!t || !existsSync(png)) continue;
+      const want = frameSignature(png);
+      const got = frameSignature(input.mp4, input.introDurationMs + t.startMs + 300);
+      if (!want || !got) continue;
+      const d = meanAbsDiff(want, got);
+      if (d > THRESHOLDS.sceneOpenFrameDiff) {
+        lateOpen.push(`scene "${scene.id}" does not open on slide "${scene.steps[0].slide}" (frame differs by ${d.toFixed(1)})`);
+        diagnostics.push(diag('scene/opens-on-wrong-picture', 'error',
+          `scene "${scene.id}" is not showing its slide when its narration starts`,
+          { sceneId: scene.id, slide: scene.steps[0].slide },
+          { frameDiff: Number(d.toFixed(1)), atMs: Math.round(input.introDurationMs + t.startMs + 300) },
+          ['the opening navigation must run before the scene clock (see driver openerOf)',
+           'check the deck compiled and the slide id exists']));
+      }
+    }
+    add('scene_opens_on_its_slide', lateOpen.length === 0, lateOpen);
   }
 
   // --- captions -----------------------------------------------------------
