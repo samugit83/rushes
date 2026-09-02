@@ -74,22 +74,25 @@ body {
 [data-node] { transition: opacity var(--motion-state) var(--ease), filter var(--motion-state) var(--ease), transform var(--motion-state) var(--ease); }
 [data-node][data-dim] { opacity: 0.26; filter: saturate(0.2) brightness(0.8); }
 [data-node][data-focus] {
-  transform: scale(1.05);
+  /* Glow and lift in z, never scale: a box that changes size moves its edges,
+     and the connectors were measured once at the settled size, so any transform
+     here would detach every arrow touching this box. Motion is light, not
+     geometry. */
   z-index: 3;
+  filter: brightness(1.08);
   box-shadow:
     0 12px 36px color-mix(in srgb, #000 50%, transparent),
-    0 0 30px color-mix(in srgb, var(--tone, var(--accent)) 40%, transparent);
+    0 0 34px color-mix(in srgb, var(--tone, var(--accent)) 45%, transparent);
 }
 /* The beat pulse: a box the narration just named glows brighter and swells,
    then settles. Ported in spirit from archify's node-pulse. */
 [data-node][data-highlight] { animation: node-pulse 1200ms var(--ease) 1; }
 @keyframes node-pulse {
-  0%, 100% { box-shadow: 0 10px 30px color-mix(in srgb, #000 45%, transparent), 0 0 22px color-mix(in srgb, var(--tone, var(--tone-neutral)) 22%, transparent); transform: scale(1); }
+  0%, 100% { box-shadow: 0 10px 30px color-mix(in srgb, #000 45%, transparent), 0 0 22px color-mix(in srgb, var(--tone, var(--tone-neutral)) 22%, transparent); }
   22%, 40% {
     box-shadow:
       0 0 0 3px color-mix(in srgb, var(--tone, var(--accent)) 80%, transparent),
-      0 0 44px color-mix(in srgb, var(--tone, var(--accent)) 55%, transparent);
-    transform: scale(1.045);
+      0 0 48px color-mix(in srgb, var(--tone, var(--accent)) 60%, transparent);
   }
 }
 [data-node][data-hidden] { opacity: 0; transform: translateY(14px); }
@@ -323,10 +326,11 @@ body {
 :root[data-still] .connectors > path { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; }
 :root[data-still] .connectors > path[data-style="dashed"] { stroke-dasharray: 12 10; }
 :root[data-still] [data-node] { animation: none !important; opacity: 1; }
-:root[data-still] .slide[data-active] [data-node] { transform: none; }
-:root[data-still] [data-node][data-focus] { transform: scale(1.05); }
 
 /* --- entrance: nodes and the deck fade up as a slide becomes active. One-shot
    and short, so it has settled long before the still is captured. ---------- */
 .slide[data-active] [data-node] { animation: node-enter var(--motion-enter) var(--ease) both; }
-@keyframes node-enter { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+/* Opacity only. A translate or scale here shifts the box after the connectors
+   have been measured, so every arrow would point 10px off. The fade is the
+   entrance; position never moves. */
+@keyframes node-enter { from { opacity: 0; } to { opacity: 1; } }

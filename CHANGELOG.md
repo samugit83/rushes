@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.6
+
+A deep review of 1.0.5 found that the new motion moved boxes, which detaches
+connectors.
+
+- **Fix: motion is opacity and glow only, never geometry.** The 1.0.5 entrance
+  animation translated every node up by 10px, but connectors are measured once
+  at the settled position and never redrawn while a scene holds — so every arrow
+  in every diagram pointed 10px off for the whole recorded scene. The still and
+  the golden hid it, because they freeze to the settled frame. The entrance is
+  now a pure fade, and the beat focus/pulse effects glow without scaling, so no
+  box ever moves out from under its arrows. A source-level test forbids a
+  transform on any node-state or entrance effect so it cannot come back.
+
 ## 1.0.5
 
 Composed diagrams look and move like a finished product, without giving up the
