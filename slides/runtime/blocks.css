@@ -72,9 +72,26 @@ body {
 /* --- the beat vocabulary (L7): dim and focus, never reveal from nothing -- */
 
 [data-node] { transition: opacity var(--motion-state) var(--ease), filter var(--motion-state) var(--ease), transform var(--motion-state) var(--ease); }
-[data-node][data-dim] { opacity: 0.28; filter: saturate(0.25); }
-[data-node][data-focus] { transform: scale(1.04); }
-[data-node][data-highlight] { box-shadow: 0 0 0 3px var(--accent), 0 0 34px color-mix(in srgb, var(--accent) 45%, transparent); }
+[data-node][data-dim] { opacity: 0.26; filter: saturate(0.2) brightness(0.8); }
+[data-node][data-focus] {
+  transform: scale(1.05);
+  z-index: 3;
+  box-shadow:
+    0 12px 36px color-mix(in srgb, #000 50%, transparent),
+    0 0 30px color-mix(in srgb, var(--tone, var(--accent)) 40%, transparent);
+}
+/* The beat pulse: a box the narration just named glows brighter and swells,
+   then settles. Ported in spirit from archify's node-pulse. */
+[data-node][data-highlight] { animation: node-pulse 1200ms var(--ease) 1; }
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 10px 30px color-mix(in srgb, #000 45%, transparent), 0 0 22px color-mix(in srgb, var(--tone, var(--tone-neutral)) 22%, transparent); transform: scale(1); }
+  22%, 40% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--tone, var(--accent)) 80%, transparent),
+      0 0 44px color-mix(in srgb, var(--tone, var(--accent)) 55%, transparent);
+    transform: scale(1.045);
+  }
+}
 [data-node][data-hidden] { opacity: 0; transform: translateY(14px); }
 [data-node][data-spawn] { animation: spawn var(--motion-enter) var(--ease) both; }
 @keyframes spawn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
@@ -82,8 +99,12 @@ body {
 /* --- boxes, the shared unit of every structural block ------------------ */
 
 .box {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  /* A tone-tinted gradient instead of a flat fill, a hairline tone border, and
+     a soft coloured glow keyed to the box's own tone. This is most of the
+     "premium" look, and it costs nothing at render time. */
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--tone, var(--tone-neutral)) 16%, var(--surface-2)), var(--surface-2) 72%);
+  border: 1px solid color-mix(in srgb, var(--tone, var(--border)) 42%, var(--border));
   border-left: 5px solid var(--tone, var(--tone-neutral));
   border-radius: var(--radius);
   padding: var(--space-3) var(--space-3);
@@ -91,6 +112,11 @@ body {
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 6%, transparent) inset,
+    0 10px 30px color-mix(in srgb, #000 45%, transparent),
+    0 0 22px color-mix(in srgb, var(--tone, var(--tone-neutral)) 22%, transparent);
+  transition: transform var(--motion-state) var(--ease), box-shadow var(--motion-state) var(--ease);
 }
 .box .label { font: 700 var(--type-label) / 1.15 var(--font); }
 .box .detail { font: 400 var(--type-detail) / 1.3 var(--font); color: var(--fg-muted); }
@@ -243,8 +269,19 @@ body {
    with fill:none and painted nothing: the strokes ran between boxes with no
    direction on them at all, and nothing measured it because the marker was
    present in the DOM and correctly referenced. */
-.connectors > path { fill: none; stroke: var(--accent); stroke-width: 3; color: var(--accent); }
-.connectors > path[data-style="dashed"] { stroke-dasharray: 12 10; }
+.connectors > path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 60%, transparent));
+  /* A signal flows along every edge. The geometry checks read the path's own
+     coordinates, not the visual dash, so the animation never affects them. */
+  stroke-dasharray: 14 10;
+  animation: edge-flow 1.15s linear infinite;
+}
+.connectors > path[data-style="dashed"] { stroke-dasharray: 12 10; animation-duration: 1.4s; }
+@keyframes edge-flow { to { stroke-dashoffset: -24; } }
 .connectors marker path { fill: var(--accent); stroke: none; }
 .connectors .conn-label {
   font: 600 var(--type-floor) / 1 var(--font);
@@ -277,3 +314,19 @@ body {
 }
 .deck-mark img { height: 40px; width: auto; }
 .deck-mark .name { font: 700 var(--type-detail) / 1 var(--font); letter-spacing: 1px; }
+
+
+/* --- still mode: the preview/golden capture freezes motion to a settled frame
+   so the checks are deterministic; the recorder leaves it off and films the
+   live animation (F: motion vs determinism split, after archify's canonical
+   clean export). --------------------------------------------------------- */
+:root[data-still] .connectors > path { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; }
+:root[data-still] .connectors > path[data-style="dashed"] { stroke-dasharray: 12 10; }
+:root[data-still] [data-node] { animation: none !important; opacity: 1; }
+:root[data-still] .slide[data-active] [data-node] { transform: none; }
+:root[data-still] [data-node][data-focus] { transform: scale(1.05); }
+
+/* --- entrance: nodes and the deck fade up as a slide becomes active. One-shot
+   and short, so it has settled long before the still is captured. ---------- */
+.slide[data-active] [data-node] { animation: node-enter var(--motion-enter) var(--ease) both; }
+@keyframes node-enter { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }

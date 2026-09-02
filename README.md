@@ -632,7 +632,7 @@ Full model: [`SECURITY.md`](SECURITY.md).
 <!-- generated:versions -->
 | | |
 |---|---|
-| version | `1.0.4` |
+| version | `1.0.5` |
 | node | `>=22.6.0` |
 | license | `MIT` |
 | dependencies | `ajv@8.20.0`, `ajv-formats@3.0.1`, `playwright@1.62.1` |

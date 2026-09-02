@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.5
+
+Composed diagrams look and move like a finished product, without giving up the
+determinism the checks depend on.
+
+- **Style**: every box now carries a tone-tinted gradient, a hairline tone
+  border and a soft coloured glow keyed to its own tone; connectors carry a
+  matching glow. This is most of the "premium" look, at no render cost.
+- **Motion** (filmed, because a slide is a live page the recorder captures): a
+  signal flows along every connector, a beat makes the named node pulse and
+  glow, and nodes fade up as a scene becomes active.
+- **The determinism split**: the preview and the golden still set `data-still`
+  on the root, which freezes every looping and entrance animation to its settled
+  final frame — so the checks stay stable and the frame you approve is the
+  settled look. The recorder never sets it, so the filmed slide is fully alive.
+  The geometry checks read path coordinates, never the visual dash, so animation
+  never affects them.
+
 ## 1.0.4
 
 Keeps rushes from scattering project files across a directory that was never

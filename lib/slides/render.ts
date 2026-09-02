@@ -110,6 +110,11 @@ async function renderOn(page: Page, opts: RenderOptions): Promise<RenderedSlide[
       }, s.id);
       await page.waitForTimeout(700);
       await page.evaluate(() => document.fonts?.ready).catch(() => {});
+      // Freeze motion to its settled frame for measurement and the golden still.
+      // The recorder never does this, so a filmed slide stays fully animated;
+      // the preview and the golden must be deterministic, so here they are not.
+      await page.evaluate(() => document.documentElement.setAttribute('data-still', '')).catch(() => {});
+      await page.waitForTimeout(60);
 
       const measurement = await page.evaluate(() => {
         const fn = (window as unknown as { __slideMeasure?: () => unknown }).__slideMeasure;
